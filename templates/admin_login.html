@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login - IT Support Mandiri</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <meta name="description" content="Admin login untuk IT Support Mandiri Dashboard">
+</head>
+<body class="admin-login-page" data-theme="light">
+    <div class="admin-login-container">
+        <div class="admin-login-header">
+            <i class="fas fa-shield-alt"></i>
+            <h1>Admin Login</h1>
+            <p>IT Support Mandiri Dashboard</p>
+        </div>
+
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="admin-alert admin-alert-{{ 'error' if category == 'error' else category }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form method="POST" action="{{ url_for('admin_login') }}">
+            <div class="admin-form-group">
+                <label for="username">Username</label>
+                <div class="admin-input-container">
+                    <i class="fas fa-user"></i>
+                    <input type="text" id="username" name="username" class="admin-form-control" 
+                           placeholder="Masukkan username admin" required>
+                </div>
+            </div>
+
+            <div class="admin-form-group">
+                <label for="password">Password</label>
+                <div class="admin-input-container">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="password" name="password" class="admin-form-control" 
+                           placeholder="Masukkan password admin" required>
+                </div>
+            </div>
+
+            <button type="submit" class="admin-btn-login">
+                <i class="fas fa-sign-in-alt"></i>
+                <span>Login ke Dashboard</span>
+            </button>
+        </form>
+
+        <div class="admin-back-link">
+            <a href="{{ url_for('index') }}">
+                <i class="fas fa-arrow-left"></i>
+                <span>Kembali ke Beranda</span>
+            </a>
+        </div>
+    </div>
+
+    <script>
+        // Auto focus on username field
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('username').focus();
+            
+            // Apply saved theme
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.body.setAttribute('data-theme', savedTheme);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - IT Support Mandiri</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="/static/admin.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="admin-body">
+    <div class="admin-container">
+        <!-- Sidebar -->
+        <aside class="admin-sidebar">
+            <div class="sidebar-header">
+                <h2><i class="fas fa-tools"></i> IT Support Admin</h2>
+            </div>
+            <nav class="sidebar-nav">
+                <ul>
+                    <li><a href="#dashboard" class="nav-link active" data-section="dashboard">
+                        <i class="fas fa-chart-line"></i> Dashboard
+                    </a></li>
+                    <li><a href="#solutions" class="nav-link" data-section="solutions">
+                        <i class="fas fa-lightbulb"></i> Kelola Solusi
+                    </a></li>
+                    <li><a href="#faqs" class="nav-link" data-section="faqs">
+                        <i class="fas fa-question-circle"></i> Kelola FAQ
+                    </a></li>
+                    <li><a href="#tickets" class="nav-link" data-section="tickets">
+                        <i class="fas fa-ticket-alt"></i> Tiket Support
+                    </a></li>
+                    <li><a href="#analytics" class="nav-link" data-section="analytics">
+                        <i class="fas fa-chart-bar"></i> Analytics
+                    </a></li>
+                    <li><a href="#settings" class="nav-link" data-section="settings">
+                        <i class="fas fa-cog"></i> Pengaturan
+                    </a></li>
+                </ul>
+            </nav>
+            <div class="sidebar-footer">
+                <a href="/" class="btn btn-secondary">
+                    <i class="fas fa-home"></i> Kembali ke Beranda
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="admin-main">
+            <header class="admin-header">
+                <h1 id="page-title">Dashboard</h1>
+                <div class="header-actions">
+                    <button class="btn btn-primary" id="theme-toggle">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                    <div class="user-menu">
+                        <i class="fas fa-user-circle"></i>
+                        <span>Administrator</span>
+                        <a href="{{ url_for('admin_logout') }}" class="logout-btn" title="Logout">
+                            <i class="fas fa-sign-out-alt"></i>
+                        </a>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Dashboard Section -->
+            <section id="dashboard-section" class="admin-section active">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-lightbulb"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 id="total-solutions">0</h3>
+                            <p>Total Solusi</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-question-circle"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 id="total-faqs">0</h3>
+                            <p>Total FAQ</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-comments"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 id="total-chats">0</h3>
+                            <p>Total Chat</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-ticket-alt"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 id="total-tickets">0</h3>
+                            <p>Tiket Aktif</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-charts">
+                    <div class="chart-container">
+                        <h3>Aktivitas Chat Harian</h3>
+                        <canvas id="chatChart"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <h3>Kategori Masalah Terpopuler</h3>
+                        <canvas id="categoryChart"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Solutions Section -->
+            <section id="solutions-section" class="admin-section">
+                <div class="section-header">
+                    <h2>Kelola Solusi</h2>
+                    <button class="btn btn-primary" id="add-solution-btn">
+                        <i class="fas fa-plus"></i> Tambah Solusi
+                    </button>
+                </div>
+                <div class="table-container">
+                    <table class="admin-table" id="solutions-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Kategori</th>
+                                <th>Judul</th>
+                                <th>Prioritas</th>
+                                <th>Tanggal</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Data akan dimuat via JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- FAQs Section -->
+            <section id="faqs-section" class="admin-section">
+                <div class="section-header">
+                    <h2>Kelola FAQ</h2>
+                    <button class="btn btn-primary" id="add-faq-btn">
+                        <i class="fas fa-plus"></i> Tambah FAQ
+                    </button>
+                </div>
+                <div class="table-container">
+                    <table class="admin-table" id="faqs-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Pertanyaan</th>
+                                <th>Kategori</th>
+                                <th>Prioritas</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Data akan dimuat via JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Tickets Section -->
+            <section id="tickets-section" class="admin-section">
+                <div class="section-header">
+                    <h2>Tiket Support</h2>
+                    <div class="filter-controls">
+                        <select id="ticket-status-filter">
+                            <option value="">Semua Status</option>
+                            <option value="open">Terbuka</option>
+                            <option value="in_progress">Dalam Proses</option>
+                            <option value="resolved">Selesai</option>
+                            <option value="closed">Ditutup</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table class="admin-table" id="tickets-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Subjek</th>
+                                <th>Status</th>
+                                <th>Prioritas</th>
+                                <th>Tanggal</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Data akan dimuat via JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Analytics Section -->
+            <section id="analytics-section" class="admin-section">
+                <h2>Analytics & Laporan</h2>
+                <div class="analytics-controls">
+                    <div class="date-range">
+                        <label>Periode:</label>
+                        <input type="date" id="start-date">
+                        <input type="date" id="end-date">
+                        <button class="btn btn-primary" id="apply-filter">Terapkan</button>
+                    </div>
+                    <button class="btn btn-success" id="export-data">
+                        <i class="fas fa-download"></i> Export Data
+                    </button>
+                </div>
+                <div class="analytics-grid">
+                    <div class="analytics-card">
+                        <h3>Top 10 Masalah</h3>
+                        <div id="top-problems"></div>
+                    </div>
+                    <div class="analytics-card">
+                        <h3>Waktu Respons Rata-rata</h3>
+                        <div id="response-time"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Settings Section -->
+            <section id="settings-section" class="admin-section">
+                <h2>Pengaturan Sistem</h2>
+                <div class="settings-grid">
+                    <div class="setting-group">
+                        <h3>Pengaturan Chatbot</h3>
+                        <div class="form-group">
+                            <label>Threshold Similarity:</label>
+                            <input type="range" id="similarity-threshold" min="0.1" max="1.0" step="0.1" value="0.2">
+                            <span id="threshold-value">0.2</span>
+                        </div>
+                        <div class="form-group">
+                            <label>Max Suggestions:</label>
+                            <input type="number" id="max-suggestions" min="1" max="10" value="3">
+                        </div>
+                    </div>
+                    <div class="setting-group">
+                        <h3>Pengaturan Notifikasi</h3>
+                        <div class="form-group">
+                            <label>
+                                <input type="checkbox" id="email-notifications"> 
+                                Notifikasi Email
+                            </label>
+                        </div>
+                        <div class="form-group">
+                            <label>
+                                <input type="checkbox" id="push-notifications"> 
+                                Push Notifications
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <button class="btn btn-primary" id="save-settings">
+                    <i class="fas fa-save"></i> Simpan Pengaturan
+                </button>
+            </section>
+        </main>
+    </div>
+
+    <!-- Modal untuk Form -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <div id="modal-body">
+                <!-- Content akan dimuat dinamis -->
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="/static/admin.js"></script>
+</body>
+</html>
