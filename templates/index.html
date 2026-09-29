@@ -7,48 +7,49 @@
     <link rel="stylesheet" href="/static/style.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <meta name="description" content="Sistem IT Support mandiri dengan AI chatbot untuk solusi masalah teknologi">
-    <meta name="keywords" content="IT support, troubleshooting, teknologi, AI assistant, help desk">
-    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
-    <link rel="dns-prefetch" href="//cdnjs.cloudflare.com">
 </head>
 <body>
-    <!-- Loading Screen -->
     <div id="loading-screen" class="loading-screen">
         <div class="loading-content">
             <div class="loading-spinner"></div>
             <h2>IT Support Mandiri</h2>
-            <p>Memuat sistem...</p>
+            <p>Memuat sistem cerdas...</p>
         </div>
     </div>
 
-    <!-- Navigation Bar -->
     <nav class="navbar">
         <div class="nav-container">
             <a href="#home" class="nav-brand">
                 <i class="fas fa-tools"></i>
                 <span>IT Support Mandiri</span>
             </a>
+            <button class="hamburger" id="hamburger-btn" aria-label="Menu">
+                <span></span><span></span><span></span>
+            </button>
             <ul class="nav-menu">
                 <li><a href="#home" class="nav-link active">Beranda</a></li>
+                <li><a href="#diagnostic-section" class="nav-link">Diagnosa</a></li>
                 <li><a href="#categories-section" class="nav-link">Kategori</a></li>
-                <li><a href="#chatbot-section" class="nav-link">AI Assistant</a></li>
-                <li><a href="#stats-section" class="nav-link">Statistik</a></li>
+                <li><a href="javascript:void(0)" class="nav-link" id="nav-ai-assistant">AI Assistant</a></li>
                 <li><a href="/admin/login" class="nav-link admin-link">
                     <i class="fas fa-cog"></i> Admin
                 </a></li>
-                <li><button class="theme-toggle" id="theme-toggle">
+                <li><button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">
                     <i class="fas fa-moon"></i>
                 </button></li>
             </ul>
         </div>
     </nav>
 
-    <!-- Hero Section -->
     <header id="home" class="hero-section">
         <div class="hero-content">
             <h1>IT Support Mandiri</h1>
-            <p>Solusi Cepat & Cerdas untuk Masalah IT Anda</p>
+            <p>Solusi Cepat & Cerdas untuk Masalah IT Anda menggunakan Artificial Intelligence.</p>
             <div class="hero-features">
+                <div class="feature-item">
+                    <i class="fas fa-microchip"></i>
+                    <span>Expert System</span>
+                </div>
                 <div class="feature-item">
                     <i class="fas fa-robot"></i>
                     <span>AI Assistant</span>
@@ -57,10 +58,11 @@
                     <i class="fas fa-clock"></i>
                     <span>24/7 Support</span>
                 </div>
-                <div class="feature-item">
-                    <i class="fas fa-search"></i>
-                    <span>Smart Search</span>
-                </div>
+            </div>
+            <div style="margin-top: 30px;">
+                <a href="#diagnostic-section" class="btn btn-primary" style="text-decoration: none; padding: 12px 30px; border-radius: 25px;">
+                    <i class="fas fa-stethoscope"></i> Cek Komputer Sekarang
+                </a>
             </div>
         </div>
         <div class="hero-animation">
@@ -74,12 +76,11 @@
     </header>
 
     <main>
-        <!-- Quick Search Section -->
         <section id="search-section" class="search-enhanced">
             <div class="search-container">
                 <div class="search-box">
                     <i class="fas fa-search search-icon"></i>
-                    <input type="text" id="searchInput" placeholder="Cari masalah IT Anda di sini... (contoh: laptop lemot, wifi tidak konek)" autocomplete="off">
+                    <input type="text" id="searchInput" placeholder="Cari masalah IT Anda... (contoh: laptop lemot, wifi tidak konek)" autocomplete="off">
                     <div class="search-suggestions" id="searchSuggestions"></div>
                 </div>
                 <button id="searchButton" class="search-btn">
@@ -90,150 +91,82 @@
             <div class="popular-searches">
                 <span>Pencarian populer:</span>
                 <div class="search-tags">
-                    <span class="search-tag" data-search="laptop lemot">Laptop Lemot</span>
-                    <span class="search-tag" data-search="wifi tidak konek">WiFi Bermasalah</span>
-                    <span class="search-tag" data-search="blue screen">Blue Screen</span>
-                    <span class="search-tag" data-search="printer error">Printer Error</span>
+                    <span class="search-tag">Laptop Lemot</span>
+                    <span class="search-tag">WiFi Bermasalah</span>
+                    <span class="search-tag">Blue Screen</span>
+                    <span class="search-tag">Printer Error</span>
                 </div>
             </div>
         </section>
 
-        <!-- Categories Section -->
-        <section id="categories-section">
-            <div class="section-header">
-                <h2>Kategori Masalah Umum</h2>
-                <p>Pilih kategori yang sesuai dengan masalah Anda</p>
-            </div>
-            <div class="category-grid">
-                <div class="category-card" data-category="os">
-                    <div class="category-icon">
-                        <i class="fab fa-windows"></i>
-                    </div>
-                    <div class="category-content">
-                        <h3>Sistem Operasi</h3>
-                        <p>Windows, macOS, Linux</p>
-                        <div class="category-stats">
-                            <span><i class="fas fa-lightbulb"></i> 15 Solusi</span>
-                        </div>
-                    </div>
-                    <div class="category-arrow">
-                        <i class="fas fa-arrow-right"></i>
-                    </div>
-                </div>
-                
-                <div class="category-card" data-category="hardware">
-                    <div class="category-icon">
-                        <i class="fas fa-microchip"></i>
-                    </div>
-                    <div class="category-content">
-                        <h3>Hardware</h3>
-                        <p>RAM, Disk, Motherboard</p>
-                        <div class="category-stats">
-                            <span><i class="fas fa-lightbulb"></i> 12 Solusi</span>
-                        </div>
-                    </div>
-                    <div class="category-arrow">
-                        <i class="fas fa-arrow-right"></i>
-                    </div>
-                </div>
-                
-                <div class="category-card" data-category="network">
-                    <div class="category-icon">
-                        <i class="fas fa-wifi"></i>
-                    </div>
-                    <div class="category-content">
-                        <h3>Jaringan</h3>
-                        <p>Wi-Fi, Ethernet, Router</p>
-                        <div class="category-stats">
-                            <span><i class="fas fa-lightbulb"></i> 18 Solusi</span>
-                        </div>
-                    </div>
-                    <div class="category-arrow">
-                        <i class="fas fa-arrow-right"></i>
-                    </div>
-                </div>
-                
-                <div class="category-card" data-category="software">
-                    <div class="category-icon">
-                        <i class="fas fa-desktop"></i>
-                    </div>
-                    <div class="category-content">
-                        <h3>Software</h3>
-                        <p>Aplikasi, Driver, Update</p>
-                        <div class="category-stats">
-                            <span><i class="fas fa-lightbulb"></i> 10 Solusi</span>
-                        </div>
-                    </div>
-                    <div class="category-arrow">
-                        <i class="fas fa-arrow-right"></i>
-                    </div>
-                </div>
-                
-                <div class="category-card" data-category="security">
-                    <div class="category-icon">
-                        <i class="fas fa-shield-alt"></i>
-                    </div>
-                    <div class="category-content">
-                        <h3>Keamanan</h3>
-                        <p>Virus, Malware, Firewall</p>
-                        <div class="category-stats">
-                            <span><i class="fas fa-lightbulb"></i> 8 Solusi</span>
-                        </div>
-                    </div>
-                    <div class="category-arrow">
-                        <i class="fas fa-arrow-right"></i>
-                    </div>
-                </div>
-                
-                <div class="category-card" data-category="performance">
-                    <div class="category-icon">
-                        <i class="fas fa-tachometer-alt"></i>
-                    </div>
-                    <div class="category-content">
-                        <h3>Performa</h3>
-                        <p>Optimasi, Cleanup, Speed</p>
-                        <div class="category-stats">
-                            <span><i class="fas fa-lightbulb"></i> 14 Solusi</span>
-                        </div>
-                    </div>
-                    <div class="category-arrow">
-                        <i class="fas fa-arrow-right"></i>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Quick Actions Section -->
         <section id="quick-actions" class="quick-actions">
             <div class="section-header">
                 <h2>Aksi Cepat</h2>
                 <p>Akses langsung ke fitur-fitur penting</p>
             </div>
             <div class="quick-actions-grid">
-                <div class="quick-action-card" data-action="create-ticket">
+                <div class="quick-action-card" data-action="ticket">
                     <i class="fas fa-ticket-alt"></i>
                     <h3>Buat Tiket</h3>
                     <p>Laporkan masalah baru</p>
                 </div>
-                <div class="quick-action-card" data-action="system-check">
+                <div class="quick-action-card" data-action="diagnosis">
                     <i class="fas fa-stethoscope"></i>
                     <h3>Cek Sistem</h3>
                     <p>Diagnosa otomatis</p>
                 </div>
-                <div class="quick-action-card" data-action="remote-help">
-                    <i class="fas fa-hands-helping"></i>
-                    <h3>Bantuan Remote</h3>
-                    <p>Akses jarak jauh</p>
-                </div>
-                <div class="quick-action-card" data-action="knowledge-base">
-                    <i class="fas fa-book"></i>
-                    <h3>Knowledge Base</h3>
-                    <p>Panduan lengkap</p>
+                <div class="quick-action-card" data-action="chat">
+                    <i class="fas fa-robot"></i>
+                    <h3>Tanya AI</h3>
+                    <p>Konsultasi instan</p>
                 </div>
             </div>
         </section>
 
-        <!-- AI Assistant Section -->
+        <section id="diagnostic-section" class="diagnostic-section" style="background: #f0f2f5; padding: 60px 0;">
+            <div class="container" style="max-width: 800px; margin: 0 auto; padding: 0 20px;">
+                <div class="section-header">
+                    <h2><i class="fas fa-user-md" style="color: #0061f2;"></i> Diagnosa Komputer Cerdas</h2>
+                    <p>Sistem pakar kami akan memandu Anda menemukan solusi masalah komputer secara bertahap.</p>
+                </div>
+
+                <div class="diagnostic-card" style="background: white; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.08); overflow: hidden; transition: transform 0.3s ease;">
+                    <div style="background: linear-gradient(135deg, #0061f2 0%, #00ba94 100%); padding: 20px 30px; color: white; display: flex; align-items: center; justify-content: space-between;">
+                        <span style="font-weight: 600; font-size: 1.1em; letter-spacing: 0.5px;">
+                            <i class="fas fa-microchip"></i> AI System Core
+                        </span>
+                        <button id="diagnosis-reset-btn" style="background: rgba(255,255,255,0.2); border: none; color: white; padding: 8px 18px; border-radius: 20px; cursor: pointer; font-size: 0.9em; transition: background 0.2s;">
+                            <i class="fas fa-redo"></i> Reset
+                        </button>
+                    </div>
+
+                    <div style="padding: 40px 30px; text-align: center;">
+                        <h3 style="font-size: 1.4em; color: #2c3e50; margin-bottom: 30px; line-height: 1.5;">
+                            Bingung mulai dari mana? <br>Biarkan AI menganalisis masalah Anda.
+                        </h3>
+                        <div style="display: flex; flex-direction: column; gap: 12px; max-width: 450px; margin: 0 auto;">
+                            <button id="start-diagnosis-btn" class="btn btn-primary" style="padding: 15px; border-radius: 10px; font-weight: 600; justify-content: center;">
+                                <i class="fas fa-play"></i> Mulai Diagnosa di Chatbot
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="categories-section">
+            <div class="section-header">
+                <h2>Kategori Masalah Umum</h2>
+                <p>Pilih kategori yang sesuai dengan masalah Anda</p>
+            </div>
+            <div class="category-grid">
+                <div class="category-card" data-category="sistem_operasi"><div class="category-icon"><i class="fab fa-windows"></i></div><h3>Sistem Operasi</h3><p>Windows, Linux</p></div>
+                <div class="category-card" data-category="hardware"><div class="category-icon"><i class="fas fa-microchip"></i></div><h3>Hardware</h3><p>RAM, HDD, CPU</p></div>
+                <div class="category-card" data-category="jaringan"><div class="category-icon"><i class="fas fa-wifi"></i></div><h3>Jaringan</h3><p>WiFi, LAN</p></div>
+                <div class="category-card" data-category="software"><div class="category-icon"><i class="fas fa-desktop"></i></div><h3>Software</h3><p>Aplikasi, Driver</p></div>
+            </div>
+        </section>
+
         <section id="chatbot-section" class="ai-assistant-section">
             <div class="assistant-intro">
                 <div class="assistant-avatar">
@@ -242,21 +175,7 @@
                 <div class="assistant-content">
                     <h2>AI Assistant IT Support</h2>
                     <p>Dapatkan bantuan instan dari asisten AI yang cerdas. Tanyakan masalah IT Anda dan dapatkan solusi dalam hitungan detik!</p>
-                    <div class="assistant-features">
-                        <div class="feature">
-                            <i class="fas fa-brain"></i>
-                            <span>Machine Learning</span>
-                        </div>
-                        <div class="feature">
-                            <i class="fas fa-clock"></i>
-                            <span>Respons Cepat</span>
-                        </div>
-                        <div class="feature">
-                            <i class="fas fa-lightbulb"></i>
-                            <span>Solusi Akurat</span>
-                        </div>
-                    </div>
-                    <button id="openChatbotButton" class="chat-button">
+                    <button id="hero-chat-btn" class="chat-button">
                         <i class="fas fa-comments"></i>
                         <span>Mulai Chat dengan AI</span>
                     </button>
@@ -264,236 +183,128 @@
             </div>
         </section>
 
-        <!-- Statistics Section -->
         <section id="stats-section" class="stats-section">
             <h2>Statistik Layanan</h2>
             <div class="stats-grid">
                 <div class="stat-item">
-                    <div class="stat-number" data-target="1250">0</div>
+                    <div class="stat-number">1,250+</div>
                     <div class="stat-label">Masalah Diselesaikan</div>
                 </div>
                 <div class="stat-item">
-                    <div class="stat-number" data-target="98">0</div>
-                    <div class="stat-label">% Tingkat Kepuasan</div>
+                    <div class="stat-number">98%</div>
+                    <div class="stat-label">Tingkat Kepuasan</div>
                 </div>
                 <div class="stat-item">
-                    <div class="stat-number" data-target="24">0</div>
-                    <div class="stat-label">Jam Layanan</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-number" data-target="150">0</div>
-                    <div class="stat-label">Solusi Tersedia</div>
+                    <div class="stat-number">24/7</div>
+                    <div class="stat-label">Layanan AI</div>
                 </div>
             </div>
         </section>
     </main>
 
-    <!-- Enhanced Chatbot Popup -->
-    <!-- Client Ticket Creation Modal -->
-    <div id="ticket-modal" class="modal hidden">
-        <div class="modal-overlay" onclick="closeTicketModal()"></div>
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3><i class="fas fa-ticket-alt"></i> Buat Tiket Support</h3>
-                <button class="modal-close" onclick="closeTicketModal()">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <form id="ticket-form" class="modal-body">
-                <div class="form-group">
-                    <label for="ticket-name">Nama Lengkap *</label>
-                    <input type="text" id="ticket-name" name="user_name" required 
-                           placeholder="Masukkan nama lengkap Anda">
-                </div>
-                
-                <div class="form-group">
-                    <label for="ticket-email">Email *</label>
-                    <input type="email" id="ticket-email" name="user_email" required 
-                           placeholder="contoh@email.com">
-                </div>
-                
-                <div class="form-group">
-                    <label for="ticket-category">Kategori Masalah</label>
-                    <select id="ticket-category" name="category">
-                        <option value="">Pilih kategori (opsional)</option>
-                        <option value="network">Jaringan/WiFi</option>
-                        <option value="hardware">Hardware</option>
-                        <option value="software">Software/Aplikasi</option>
-                        <option value="os">Sistem Operasi</option>
-                        <option value="security">Keamanan</option>
-                        <option value="performance">Performa</option>
-                        <option value="other">Lainnya</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label for="ticket-priority">Prioritas</label>
-                    <select id="ticket-priority" name="priority">
-                        <option value="low">Rendah</option>
-                        <option value="medium" selected>Sedang</option>
-                        <option value="high">Tinggi</option>
-                        <option value="urgent">Mendesak</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label for="ticket-subject">Judul Masalah *</label>
-                    <input type="text" id="ticket-subject" name="subject" required 
-                           placeholder="Jelaskan masalah dalam satu kalimat" 
-                           minlength="5" maxlength="250">
-                    <small class="form-help">Minimal 5 karakter, maksimal 250 karakter</small>
-                </div>
-                
-                <div class="form-group">
-                    <label for="ticket-description">Deskripsi Detail *</label>
-                    <textarea id="ticket-description" name="description" required 
-                              placeholder="Jelaskan masalah secara detail:&#10;- Kapan masalah terjadi?&#10;- Apa yang sedang Anda lakukan saat masalah muncul?&#10;- Apakah ada pesan error?&#10;- Langkah apa yang sudah Anda coba?" 
-                              rows="6" minlength="10" maxlength="2000"></textarea>
-                    <small class="form-help">Minimal 10 karakter, maksimal 2000 karakter</small>
-                </div>
-                
-                <div class="form-actions">
-                    <button type="button" class="btn btn-secondary" onclick="closeTicketModal()">
-                        <i class="fas fa-times"></i> Batal
-                    </button>
-                    <button type="submit" class="btn btn-primary" id="submit-ticket-btn">
-                        <i class="fas fa-paper-plane"></i> Kirim Tiket
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
     <div id="chatbot-popup" class="chatbot-popup hidden">
         <div id="chatbot-header" class="chatbot-header">
             <div class="header-info">
-                <div class="bot-avatar">
-                    <i class="fas fa-robot"></i>
-                </div>
+                <div class="bot-avatar"><i class="fas fa-robot"></i></div>
                 <div class="bot-details">
                     <span class="bot-name">AI Assistant</span>
                     <span class="bot-status">Online</span>
                 </div>
             </div>
             <div class="header-actions">
-                <button id="minimizeChatbot" class="header-btn" title="Minimize">
-                    <i class="fas fa-minus"></i>
-                </button>
-                <button id="closeChatbotButton" class="header-btn" title="Close">
-                    <i class="fas fa-times"></i>
-                </button>
+                <button id="chatbot-close-btn" class="header-btn" title="Close"><i class="fas fa-times"></i></button>
             </div>
         </div>
         
         <div id="chatbot-messages" class="chatbot-messages">
             <div class="message bot-message">
-                <div class="message-avatar">
-                    <i class="fas fa-robot"></i>
-                </div>
+                <div class="message-avatar"><i class="fas fa-robot"></i></div>
                 <div class="message-content">
-                    <p>Halo! Saya AI Assistant IT Support. Ada masalah teknologi yang bisa saya bantu?</p>
-                    <span class="message-time"></span>
+                    <p>Halo! 👋 Saya AI Assistant. Ketik masalah Anda atau klik tombol di bawah.</p>
+                    <span class="message-time">Sekarang</span>
+                </div>
+            </div>
+            
+            <div class="quick-replies" id="initial-quick-replies" style="justify-content: flex-start; margin-left: 40px;">
+                <button class="quick-reply" data-quick="Laptop lemot">Laptop Lemot</button>
+                <button class="quick-reply" data-quick="diagnosis">Diagnosa Masalah</button>
+            </div>
+
+            <div id="typing-indicator" class="typing-indicator hidden" style="align-self: flex-start; margin-left: 10px; margin-bottom: 10px;">
+                <div class="message-content" style="background: #e9ecef; padding: 10px 15px; border-radius: 15px;">
+                    <div class="typing-dots"><span></span><span></span><span></span></div>
                 </div>
             </div>
         </div>
-        
+
         <div class="chatbot-input-area">
             <div class="input-container">
                 <input type="text" id="chatbotInput" placeholder="Ketik masalah IT Anda..." autocomplete="off">
-                <button id="sendChatbotButton" class="send-btn" title="Send">
-                    <i class="fas fa-paper-plane"></i>
-                </button>
+                <button id="sendChatbotButton" class="send-btn"><i class="fas fa-paper-plane"></i></button>
             </div>
-            <div class="quick-replies" id="quickReplies">
-                <button class="quick-reply" data-message="Laptop saya lemot">Laptop Lemot</button>
-                <button class="quick-reply" data-message="WiFi tidak bisa konek">WiFi Bermasalah</button>
-                <button class="quick-reply" data-message="Printer tidak bisa print">Printer Error</button>
-            </div>
-        </div>
-        
-        <div class="chatbot-footer">
-            <span>Powered by AI • IT Support Mandiri</span>
         </div>
     </div>
 
-    <!-- Footer -->
+    <div id="ticket-modal" class="modal hidden">
+        <div class="modal-overlay" id="ticket-modal-overlay"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-ticket-alt"></i> Buat Tiket Support</h3>
+                <button class="modal-close" id="ticket-modal-close"><i class="fas fa-times"></i></button>
+            </div>
+            <form id="ticket-form" class="modal-body">
+                <div class="form-group">
+                    <label for="ticket-name">Nama Lengkap *</label>
+                    <input type="text" id="ticket-name" name="user_name" required placeholder="Nama Anda">
+                </div>
+                <div class="form-group">
+                    <label for="ticket-email">Email *</label>
+                    <input type="email" id="ticket-email" name="user_email" required placeholder="email@contoh.com">
+                </div>
+                <div class="form-group">
+                    <label for="ticket-subject">Judul Masalah *</label>
+                    <input type="text" id="ticket-subject" name="subject" required placeholder="Ringkasan masalah">
+                </div>
+                <div class="form-group">
+                    <label for="ticket-description">Deskripsi Detail *</label>
+                    <textarea id="ticket-description" name="description" required rows="4" placeholder="Jelaskan detail masalahnya..."></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" id="ticket-cancel-btn">Batal</button>
+                    <button type="submit" class="btn btn-primary">Kirim Tiket</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <footer class="footer">
         <div class="footer-content">
             <div class="footer-section">
                 <h3>IT Support Mandiri</h3>
-                <p>Solusi teknologi terdepan dengan dukungan AI untuk semua kebutuhan IT Anda.</p>
+                <p>Solusi teknologi terdepan dengan dukungan AI.</p>
                 <div class="social-links">
-                    <a href="https://facebook.com" target="_blank" rel="noopener" aria-label="Facebook"><i class="fab fa-facebook"></i></a>
-                    <a href="https://twitter.com" target="_blank" rel="noopener" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
-                    <a href="https://linkedin.com" target="_blank" rel="noopener" aria-label="LinkedIn"><i class="fab fa-linkedin"></i></a>
-                    <a href="https://instagram.com" target="_blank" rel="noopener" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                    <a href="#"><i class="fab fa-facebook"></i></a>
+                    <a href="#"><i class="fab fa-twitter"></i></a>
                 </div>
-            </div>
-            <div class="footer-section">
-                <h4>Layanan</h4>
-                <ul>
-                    <li><a href="#categories-section">Troubleshooting</a></li>
-                    <li><a href="#categories-section">Instalasi Software</a></li>
-                    <li><a href="#categories-section">Maintenance Hardware</a></li>
-                    <li><a href="#chatbot-section">Konsultasi IT</a></li>
-                </ul>
-            </div>
-            <div class="footer-section">
-                <h4>Dukungan</h4>
-                <ul>
-                    <li><a href="#categories-section">Knowledge Base</a></li>
-                    <li><a href="#chatbot-section">FAQ</a></li>
-                    <li><a href="javascript:void(0)" onclick="window.itSupportApp?.openTicketModal()">Tiket Support</a></li>
-                    <li><a href="#home">Kontak</a></li>
-                </ul>
             </div>
             <div class="footer-section">
                 <h4>Kontak</h4>
                 <div class="contact-info">
-                    <p><i class="fas fa-phone"></i> +62 123 456 7890</p>
-                    <p><i class="fas fa-envelope"></i> support@itsupport.com</p>
-                    <p><i class="fas fa-map-marker-alt"></i> Jakarta, Indonesia</p>
+                    <p><i class="fas fa-envelope"></i> admin@itsupport.com</p>
+                    <p><i class="fas fa-map-marker-alt"></i> Kampus Teknik Informatika</p>
                 </div>
             </div>
         </div>
         <div class="footer-bottom">
-            <p>&copy; 2025 IT Support Mandiri. All rights reserved.</p>
-            <div class="footer-links">
-                <a href="mailto:support@itsupport.com">Privacy Policy</a>
-                <a href="mailto:support@itsupport.com">Terms of Service</a>
-                <a href="mailto:support@itsupport.com">Cookie Policy</a>
-            </div>
+            <p>&copy; 2025 IT Support Mandiri.</p>
         </div>
     </footer>
 
-    <!-- Floating Action Button -->
     <div class="fab-container">
-        <button class="fab" id="fabMain" title="Quick Actions">
-            <i class="fas fa-plus"></i>
-        </button>
-        <div class="fab-menu" id="fabMenu">
-            <button class="fab-item" data-action="chat" title="Chat AI">
-                <i class="fas fa-comments"></i>
-                <span>Chat AI</span>
-            </button>
-            <button class="fab-item" data-action="ticket" title="Buat Tiket">
-                <i class="fas fa-ticket-alt"></i>
-                <span>Buat Tiket</span>
-            </button>
-            <button class="fab-item" data-action="call" title="Telepon">
-                <i class="fas fa-phone"></i>
-                <span>Telepon</span>
-            </button>
-        </div>
+        <button class="fab" id="fab-chat-btn" title="Chat AI"><i class="fas fa-comments"></i></button>
     </div>
-
-    <!-- Notification Container -->
     <div id="notification-container" class="notification-container"></div>
 
-    <!-- Back to Top Button -->
-    <button id="backToTop" class="back-to-top" title="Back to Top">
-        <i class="fas fa-arrow-up"></i>
-    </button>
-
-    <script src="/static/script.js" defer></script>
+    <script src="/static/script.js"></script>
 </body>
 </html>

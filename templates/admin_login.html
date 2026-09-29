@@ -3,71 +3,75 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Login - IT Support Mandiri</title>
-    <link rel="stylesheet" href="/static/style.css">
+    <title>Login Admin - IT Support</title>
+    
+    <link rel="stylesheet" href="/static/admin.css">
+    
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <meta name="description" content="Admin login untuk IT Support Mandiri Dashboard">
+    <link rel="icon" href="/favicon.ico">
 </head>
-<body class="admin-login-page" data-theme="light">
-    <div class="admin-login-container">
-        <div class="admin-login-header">
-            <i class="fas fa-shield-alt"></i>
-            <h1>Admin Login</h1>
-            <p>IT Support Mandiri Dashboard</p>
-        </div>
+<body class="admin-login-page">
+    
+    <div class="login-wrapper">
+        <div class="admin-login-container">
+            <div class="admin-login-header">
+                <div class="login-icon">
+                    <i class="fas fa-user-shield"></i>
+                </div>
+                <h1>Admin Portal</h1>
+                <p>IT Support Knowledge Base System</p>
+            </div>
 
-        <!-- Flash Messages -->
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="admin-alert admin-alert-{{ 'error' if category == 'error' else category }}">
-                        {{ message }}
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div class="login-alerts">
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }}">
+                                <i class="fas fa-{{ 'exclamation-triangle' if category == 'error' else 'check-circle' }}"></i>
+                                <span>{{ message }}</span>
+                            </div>
+                        {% endfor %}
                     </div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
+                {% endif %}
+            {% endwith %}
 
-        <form method="POST" action="{{ url_for('admin_login') }}">
-            <div class="admin-form-group">
-                <label for="username">Username</label>
-                <div class="admin-input-container">
-                    <i class="fas fa-user"></i>
-                    <input type="text" id="username" name="username" class="admin-form-control" 
-                           placeholder="Masukkan username admin" required>
+            <form method="POST" action="{{ url_for('admin_login') }}">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <div class="input-with-icon">
+                        <i class="fas fa-user"></i>
+                        <input type="text" id="username" name="username" placeholder="Masukkan username" required autocomplete="username" autofocus>
+                    </div>
                 </div>
-            </div>
 
-            <div class="admin-form-group">
-                <label for="password">Password</label>
-                <div class="admin-input-container">
-                    <i class="fas fa-lock"></i>
-                    <input type="password" id="password" name="password" class="admin-form-control" 
-                           placeholder="Masukkan password admin" required>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <div class="input-with-icon">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" id="password" name="password" placeholder="Masukkan password" required autocomplete="current-password">
+                    </div>
                 </div>
+
+                <button type="submit" class="btn-login-full">
+                    <i class="fas fa-sign-in-alt"></i> Masuk Dashboard
+                </button>
+            </form>
+
+            <div class="admin-login-footer">
+                <a href="{{ url_for('index') }}">
+                    <i class="fas fa-arrow-left"></i> Kembali ke Halaman Utama
+                </a>
             </div>
-
-            <button type="submit" class="admin-btn-login">
-                <i class="fas fa-sign-in-alt"></i>
-                <span>Login ke Dashboard</span>
-            </button>
-        </form>
-
-        <div class="admin-back-link">
-            <a href="{{ url_for('index') }}">
-                <i class="fas fa-arrow-left"></i>
-                <span>Kembali ke Beranda</span>
-            </a>
         </div>
+        
+        <p class="copyright">© 2025 IT Support System. All Rights Reserved.</p>
     </div>
 
     <script>
-        // Auto focus on username field
-        document.addEventListener('DOMContentLoaded', function() {
-            document.getElementById('username').focus();
-            
-            // Apply saved theme
-            const savedTheme = localStorage.getItem('theme') || 'light';
-            document.body.setAttribute('data-theme', savedTheme);
+        // Pastikan tema ter-set (mencegah glitch tampilan)
+        document.addEventListener('DOMContentLoaded', () => {
+            localStorage.setItem('theme', 'light'); // Login page dipaksa light/clean look
+            document.body.setAttribute('data-theme', 'light');
         });
     </script>
 </body>

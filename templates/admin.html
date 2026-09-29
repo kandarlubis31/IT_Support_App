@@ -4,13 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - IT Support Mandiri</title>
+    
     <link rel="stylesheet" href="/static/style.css">
     <link rel="stylesheet" href="/static/admin.css">
+    
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
 </head>
 <body class="admin-body">
     <div class="admin-container">
-        <!-- Sidebar -->
         <aside class="admin-sidebar">
             <div class="sidebar-header">
                 <h2><i class="fas fa-tools"></i> IT Support Admin</h2>
@@ -26,8 +29,16 @@
                     <li><a href="#faqs" class="nav-link" data-section="faqs">
                         <i class="fas fa-question-circle"></i> Kelola FAQ
                     </a></li>
+                    
+                    <li><a href="#expert-system" class="nav-link" data-section="expert-system">
+                        <i class="fas fa-brain"></i> Kelola AI (Expert)
+                    </a></li>
+                    
                     <li><a href="#tickets" class="nav-link" data-section="tickets">
                         <i class="fas fa-ticket-alt"></i> Tiket Support
+                    </a></li>
+                    <li><a href="#chat-history" class="nav-link" data-section="chat-history">
+                        <i class="fas fa-comments"></i> Riwayat Chat
                     </a></li>
                     <li><a href="#analytics" class="nav-link" data-section="analytics">
                         <i class="fas fa-chart-bar"></i> Analytics
@@ -44,7 +55,6 @@
             </div>
         </aside>
 
-        <!-- Main Content -->
         <main class="admin-main">
             <header class="admin-header">
                 <h1 id="page-title">Dashboard</h1>
@@ -62,47 +72,38 @@
                 </div>
             </header>
 
-            <!-- Dashboard Section -->
             <section id="dashboard-section" class="admin-section active">
                 <div class="stats-grid">
                     <div class="stat-card">
-                        <div class="stat-icon">
-                            <i class="fas fa-lightbulb"></i>
-                        </div>
+                        <div class="stat-icon"><i class="fas fa-lightbulb"></i></div>
                         <div class="stat-content">
                             <h3 id="total-solutions">0</h3>
                             <p>Total Solusi</p>
                         </div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-icon">
-                            <i class="fas fa-question-circle"></i>
-                        </div>
+                        <div class="stat-icon"><i class="fas fa-question-circle"></i></div>
                         <div class="stat-content">
                             <h3 id="total-faqs">0</h3>
                             <p>Total FAQ</p>
                         </div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-icon">
-                            <i class="fas fa-comments"></i>
-                        </div>
-                        <div class="stat-content">
-                            <h3 id="total-chats">0</h3>
-                            <p>Total Chat</p>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">
-                            <i class="fas fa-ticket-alt"></i>
-                        </div>
+                        <div class="stat-icon"><i class="fas fa-ticket-alt"></i></div>
                         <div class="stat-content">
                             <h3 id="total-tickets">0</h3>
                             <p>Tiket Aktif</p>
                         </div>
                     </div>
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-robot"></i></div>
+                        <div class="stat-content">
+                            <h3 id="total-chats">AI Ready</h3>
+                            <p>Status Sistem</p>
+                        </div>
+                    </div>
                 </div>
-
+                <p style="text-align:center;color:var(--text-muted);font-size:0.8rem;margin-bottom:20px;">Auto-refresh setiap 30 detik | Terakhir: <span id="dashboard-refresh-time">--:--</span></p>
                 <div class="dashboard-charts">
                     <div class="chart-container">
                         <h3>Aktivitas Chat Harian</h3>
@@ -115,13 +116,17 @@
                 </div>
             </section>
 
-            <!-- Solutions Section -->
             <section id="solutions-section" class="admin-section">
                 <div class="section-header">
                     <h2>Kelola Solusi</h2>
                     <button class="btn btn-primary" id="add-solution-btn">
                         <i class="fas fa-plus"></i> Tambah Solusi
                     </button>
+                </div>
+                <div class="admin-search-bar">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="search-solutions" placeholder="Cari solusi..." class="admin-search-input">
+                    <small id="solutions-table-info" style="color:var(--text-muted);margin-left:10px;"></small>
                 </div>
                 <div class="table-container">
                     <table class="admin-table" id="solutions-table">
@@ -135,20 +140,23 @@
                                 <th>Aksi</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            <!-- Data akan dimuat via JavaScript -->
-                        </tbody>
+                        <tbody></tbody>
                     </table>
                 </div>
+                <div class="pagination" id="solutions-table-pagination"></div>
             </section>
 
-            <!-- FAQs Section -->
             <section id="faqs-section" class="admin-section">
                 <div class="section-header">
                     <h2>Kelola FAQ</h2>
                     <button class="btn btn-primary" id="add-faq-btn">
                         <i class="fas fa-plus"></i> Tambah FAQ
                     </button>
+                </div>
+                <div class="admin-search-bar">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="search-faqs" placeholder="Cari FAQ..." class="admin-search-input">
+                    <small id="faqs-table-info" style="color:var(--text-muted);margin-left:10px;"></small>
                 </div>
                 <div class="table-container">
                     <table class="admin-table" id="faqs-table">
@@ -161,14 +169,97 @@
                                 <th>Aksi</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            <!-- Data akan dimuat via JavaScript -->
-                        </tbody>
+                        <tbody></tbody>
                     </table>
+                </div>
+                <div class="pagination" id="faqs-table-pagination"></div>
+            </section>
+
+            <section id="expert-system-section" class="admin-section">
+                <div class="section-header">
+                    <h2>Knowledge Base Manager (AI)</h2>
+                    <div class="header-buttons" style="display: flex; gap: 10px;">
+                        <button class="btn btn-primary" id="add-node-btn">
+                            <i class="fas fa-plus-circle"></i> Tambah Node
+                        </button>
+                        <button class="btn btn-success" id="add-edge-btn">
+                            <i class="fas fa-project-diagram"></i> Hubungkan (Buat Rule)
+                        </button>
+                    </div>
+                </div>
+
+                <div class="tabs">
+                    <button class="tab-btn active" onclick="switchExpertTab('nodes')">
+                        <i class="fas fa-list"></i> Daftar Node
+                    </button>
+                    <button class="tab-btn" onclick="switchExpertTab('edges')">
+                        <i class="fas fa-link"></i> Daftar Rule
+                    </button>
+                    <button class="tab-btn" onclick="switchExpertTab('visual')">
+                        <i class="fas fa-project-diagram"></i> Visualisasi Tree
+                    </button>
+                </div>
+
+                <div id="nodes-view" class="table-container">
+                    <div style="padding: 15px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;">
+                        <strong>Daftar Node</strong> (Pertanyaan & Solusi)
+                        <div class="admin-search-bar" style="margin:0;width:300px;"><i class="fas fa-search"></i><input type="text" id="search-nodes" placeholder="Cari node..." class="admin-search-input"></div>
+                    </div>
+                    <table class="admin-table" id="nodes-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Tipe</th>
+                                <th>Isi Konten</th>
+                                <th>Root?</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                    <div class="pagination" id="nodes-table-pagination"></div>
+                </div>
+
+                <div id="edges-view" class="table-container" style="display: none;">
+                    <div style="padding: 15px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;">
+                        <strong>Daftar Rule</strong> (Alur Logika: Jika A maka B)
+                        <div class="admin-search-bar" style="margin:0;width:300px;"><i class="fas fa-search"></i><input type="text" id="search-edges" placeholder="Cari rule..." class="admin-search-input"></div>
+                    </div>
+                    <table class="admin-table" id="edges-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Dari (Source)</th>
+                                <th>Jawaban User</th>
+                                <th>Ke (Target)</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                    <div class="pagination" id="edges-table-pagination"></div>
+                </div>
+
+                <div id="visual-view" class="table-container" style="display: none; padding: 0;">
+                    <div style="padding: 15px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;">
+                        <strong>Visualisasi Pohon Keputusan</strong>
+                        <button class="btn btn-sm btn-secondary" onclick="adminDashboard.loadVisualGraph()">
+                            <i class="fas fa-sync"></i> Refresh Graph
+                        </button>
+                    </div>
+                    
+                    <div id="ai-network-container"></div>
+                    
+                    <div style="padding: 10px; background: #f9f9f9; font-size: 0.85em; color: #666; border-top: 1px solid #eee;">
+                        <i class="fas fa-info-circle"></i> 
+                        <strong>Petunjuk:</strong> 
+                        <span style="color:#007bff">● Biru</span> = Pertanyaan, 
+                        <span style="color:#28a745">■ Hijau</span> = Solusi. 
+                        Gunakan scroll mouse untuk Zoom.
+                    </div>
                 </div>
             </section>
 
-            <!-- Tickets Section -->
             <section id="tickets-section" class="admin-section">
                 <div class="section-header">
                     <h2>Tiket Support</h2>
@@ -180,7 +271,13 @@
                             <option value="resolved">Selesai</option>
                             <option value="closed">Ditutup</option>
                         </select>
+                        <button class="btn btn-sm btn-success" id="export-tickets-csv"><i class="fas fa-download"></i> Export CSV</button>
                     </div>
+                </div>
+                <div class="admin-search-bar">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="search-tickets" placeholder="Cari tiket..." class="admin-search-input">
+                    <small id="tickets-table-info" style="color:var(--text-muted);margin-left:10px;"></small>
                 </div>
                 <div class="table-container">
                     <table class="admin-table" id="tickets-table">
@@ -190,18 +287,44 @@
                                 <th>Subjek</th>
                                 <th>Status</th>
                                 <th>Prioritas</th>
+                                <th>User</th>
                                 <th>Tanggal</th>
                                 <th>Aksi</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            <!-- Data akan dimuat via JavaScript -->
-                        </tbody>
+                        <tbody></tbody>
                     </table>
                 </div>
+                <div class="pagination" id="tickets-table-pagination"></div>
             </section>
 
-            <!-- Analytics Section -->
+            <section id="chat-history-section" class="admin-section">
+                <div class="section-header">
+                    <h2>Riwayat Chat AI</h2>
+                    <button class="btn btn-sm btn-success" id="export-chat-csv"><i class="fas fa-download"></i> Export CSV</button>
+                </div>
+                <div class="admin-search-bar">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="search-chat-logs" placeholder="Cari chat..." class="admin-search-input">
+                    <small id="chat-logs-table-info" style="color:var(--text-muted);margin-left:10px;"></small>
+                </div>
+                <div class="table-container">
+                    <table class="admin-table" id="chat-logs-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Pesan User</th>
+                                <th>Respon Bot</th>
+                                <th>Tipe</th>
+                                <th>Waktu</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+                <div class="pagination" id="chat-logs-table-pagination"></div>
+            </section>
+
             <section id="analytics-section" class="admin-section">
                 <h2>Analytics & Laporan</h2>
                 <div class="analytics-controls">
@@ -218,16 +341,15 @@
                 <div class="analytics-grid">
                     <div class="analytics-card">
                         <h3>Top 10 Masalah</h3>
-                        <div id="top-problems"></div>
+                        <div id="top-problems">Loading...</div>
                     </div>
                     <div class="analytics-card">
                         <h3>Waktu Respons Rata-rata</h3>
-                        <div id="response-time"></div>
+                        <div id="response-time">Loading...</div>
                     </div>
                 </div>
             </section>
 
-            <!-- Settings Section -->
             <section id="settings-section" class="admin-section">
                 <h2>Pengaturan Sistem</h2>
                 <div class="settings-grid">
@@ -247,14 +369,12 @@
                         <h3>Pengaturan Notifikasi</h3>
                         <div class="form-group">
                             <label>
-                                <input type="checkbox" id="email-notifications"> 
-                                Notifikasi Email
+                                <input type="checkbox" id="email-notifications"> Notifikasi Email
                             </label>
                         </div>
                         <div class="form-group">
                             <label>
-                                <input type="checkbox" id="push-notifications"> 
-                                Push Notifications
+                                <input type="checkbox" id="push-notifications"> Push Notifications
                             </label>
                         </div>
                     </div>
@@ -266,13 +386,11 @@
         </main>
     </div>
 
-    <!-- Modal untuk Form -->
     <div id="modal" class="modal">
         <div class="modal-content">
             <span class="close">&times;</span>
             <div id="modal-body">
-                <!-- Content akan dimuat dinamis -->
-            </div>
+                </div>
         </div>
     </div>
 
