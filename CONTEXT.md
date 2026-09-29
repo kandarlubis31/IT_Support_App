@@ -1,15 +1,15 @@
-# IT_Support_App
+# IT_Support_App — Project Context
 
-## Tentang Project
-
+## Ringkasan
 Sistem IT Support mandiri dengan AI chatbot untuk solusi masalah teknologi. Aplikasi web modern dengan interface yang responsif dan sistem manajemen tiket yang lengkap.
 
-## Tech Stack
+> *Context ini dibuat otomatis oleh `catalog/generate_contexts.py`. Isi ulang
+> bagian ringkasan / arsitektur secara manual jika butuh detail lebih dalam.*
 
+## Tech Stack
 Python
 
 ## Struktur Utama
-
 ```
 instance/
 static/
@@ -31,14 +31,9 @@ requirements.txt
 seed_data.py
 ```
 
-## Menjalankan
-
+## Cara Menjalankan
 - `python app.py`
 
 ---
 
 *Generated: 2026-08-08 · Path: Project Ready Publish On Github\IT_Support_App*
-
----
-
-Lihat `CONTEXT.md` di folder ini untuk detail arsitektur.

@@ -1,8 +1,18 @@
-// Optimized JavaScript for IT Support App
+/**
+ * IT Support Mandiri - Unified Client Script v2
+ * All-in-one: chatbot, diagnosis, search, tickets, feedback, notifications, sounds, skeleton loading
+ */
 class ITSupportApp {
     constructor() {
         this.currentTheme = localStorage.getItem('theme') || 'light';
+        this.isDiagnosisMode = false;
+        this.currentNodeId = null;
         this.isLoading = true;
+        this.unreadCount = 0;
+        this.lastBotMsgId = null;
+        this.notificationGranted = false;
+        this.soundEnabled = localStorage.getItem('soundEnabled') !== 'false';
+        
         this.searchSuggestions = [
             'laptop lemot', 'wifi tidak konek', 'blue screen', 'printer error',
             'virus komputer', 'password lupa', 'driver bermasalah', 'sistem hang',
@@ -13,52 +23,56 @@ class ITSupportApp {
         this.init();
     }
 
+    /* ============ INIT ============ */
     init() {
         this.setupLoading();
         this.setupTheme();
         this.setupNavigation();
         this.setupSearch();
         this.setupChatbot();
+        this.setupTicketModal();
         this.setupQuickActions();
         this.setupAnimations();
-        this.setupStats();
         this.setupBackToTop();
+        this.setupExtraListeners();
+        this.requestNotificationPermission();
         this.loadContent();
-        this.setupTicketModal();
     }
 
+    /* ============ LOADING + SKELETON ============ */
     setupLoading() {
-        // Show loading screen initially, then hide after content loads
-        const loadingScreen = document.getElementById('loading-screen');
-        if (loadingScreen) {
-            // Ensure loading screen is visible initially
-            loadingScreen.classList.remove('hidden');
-            
-            // Hide loading screen after a brief delay to show loading effect
+        const loader = document.getElementById('loading-screen');
+        if (loader) {
+            this.showSkeletonLoading();
             setTimeout(() => {
-                loadingScreen.classList.add('hidden');
-                document.body.classList.add('loaded');
-                this.isLoading = false;
-            }, 1500); // 1.5 seconds loading time
+                loader.style.opacity = '0';
+                setTimeout(() => {
+                    loader.style.display = 'none';
+                    document.body.classList.add('loaded');
+                    this.isLoading = false;
+                }, 400);
+            }, 500);
         } else {
-            // Fallback if loading screen not found
             document.body.classList.add('loaded');
             this.isLoading = false;
         }
     }
 
+    showSkeletonLoading() {
+        const content = document.querySelector('#loading-screen .loading-content');
+        if (!content) return;
+        const old = content.querySelector('p');
+        if (old) old.textContent = 'Menyiapkan AI Assistant...';
+    }
+
+    /* ============ THEME ============ */
     setupTheme() {
         document.documentElement.setAttribute('data-theme', this.currentTheme);
-        const themeToggle = document.getElementById('theme-toggle');
-        if (themeToggle) {
-            const icon = themeToggle.querySelector('i');
-            if (icon) {
-                icon.className = this.currentTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
-            }
-            
-            themeToggle.addEventListener('click', () => {
-                this.toggleTheme();
-            });
+        const btn = document.getElementById('theme-toggle');
+        if (btn) {
+            const icon = btn.querySelector('i');
+            if (icon) icon.className = this.currentTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+            btn.addEventListener('click', () => this.toggleTheme());
         }
     }
 
@@ -66,1031 +80,483 @@ class ITSupportApp {
         this.currentTheme = this.currentTheme === 'light' ? 'dark' : 'light';
         localStorage.setItem('theme', this.currentTheme);
         document.documentElement.setAttribute('data-theme', this.currentTheme);
-        
         const icon = document.querySelector('#theme-toggle i');
-        if (icon) {
-            icon.className = this.currentTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
-        }
-        
-        this.showNotification(`Tema ${this.currentTheme === 'dark' ? 'gelap' : 'terang'} diaktifkan`, 'info');
+        if (icon) icon.className = this.currentTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
     }
 
+    /* ============ NAVIGATION ============ */
     setupNavigation() {
-        // Smooth scrolling for navigation links
         document.querySelectorAll('.nav-link[href^="#"]').forEach(link => {
             link.addEventListener('click', (e) => {
                 e.preventDefault();
                 const target = document.querySelector(link.getAttribute('href'));
-                if (target) {
-                    target.scrollIntoView({ behavior: 'smooth' });
-                }
+                if (target) target.scrollIntoView({ behavior: 'smooth' });
             });
         });
-
-        // Active navigation highlighting
+        const hamburger = document.getElementById('hamburger-btn');
+        const navMenu = document.querySelector('.nav-menu');
+        if (hamburger && navMenu) {
+            hamburger.addEventListener('click', () => {
+                hamburger.classList.toggle('active');
+                navMenu.classList.toggle('active');
+            });
+            navMenu.querySelectorAll('a').forEach(a => {
+                a.addEventListener('click', () => {
+                    hamburger.classList.remove('active');
+                    navMenu.classList.remove('active');
+                });
+            });
+        }
         window.addEventListener('scroll', () => {
-            this.updateActiveNavigation();
+            this.updateActiveNav();
             this.handleBackToTop();
         });
     }
 
-    updateActiveNavigation() {
+    updateActiveNav() {
         const sections = document.querySelectorAll('section[id]');
-        const navLinks = document.querySelectorAll('.nav-link[href^="#"]');
-        
+        const links = document.querySelectorAll('.nav-link[href^="#"]');
         let current = '';
-        sections.forEach(section => {
-            const sectionTop = section.offsetTop;
-            if (scrollY >= sectionTop - 200) {
-                current = section.getAttribute('id');
-            }
-        });
-
-        navLinks.forEach(link => {
-            link.classList.remove('active');
-            if (link.getAttribute('href') === `#${current}`) {
-                link.classList.add('active');
-            }
+        sections.forEach(s => { if (scrollY >= s.offsetTop - 200) current = s.getAttribute('id'); });
+        links.forEach(l => {
+            l.classList.remove('active');
+            if (l.getAttribute('href') === `#${current}`) l.classList.add('active');
         });
     }
 
+    /* ============ SEARCH ============ */
     setupSearch() {
-        const searchInput = document.getElementById('searchInput');
-        const searchButton = document.getElementById('searchButton');
-        const searchSuggestions = document.getElementById('searchSuggestions');
-        const searchTags = document.querySelectorAll('.search-tag');
-
-        if (searchInput) {
-            // Search suggestions
-            searchInput.addEventListener('input', (e) => {
-                this.showSearchSuggestions(e.target.value);
-            });
-
-            searchInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    this.performSearch(searchInput.value);
-                }
-            });
-
-            // Hide suggestions when clicking outside
+        const input = document.getElementById('searchInput');
+        const btn = document.getElementById('searchButton');
+        if (input) {
+            input.addEventListener('input', (e) => this.showSearchSuggestions(e.target.value));
+            input.addEventListener('keypress', (e) => { if (e.key === 'Enter') this.performSearch(); });
             document.addEventListener('click', (e) => {
-                if (!searchInput.contains(e.target)) {
+                if (!input.contains(e.target) && !document.getElementById('searchSuggestions')?.contains(e.target))
                     this.hideSearchSuggestions();
-                }
             });
         }
-
-        if (searchButton) {
-            searchButton.addEventListener('click', () => {
-                this.performSearch(searchInput.value);
-            });
-        }
-
-        // Search tags
-        searchTags.forEach(tag => {
+        if (btn) btn.addEventListener('click', () => this.performSearch());
+        document.querySelectorAll('.search-tag').forEach(tag => {
             tag.addEventListener('click', () => {
-                const searchTerm = tag.dataset.search;
-                if (searchInput) {
-                    searchInput.value = searchTerm;
-                }
-                this.performSearch(searchTerm);
+                const term = tag.textContent.trim();
+                if (input) input.value = term;
+                this.quickSearch(term);
             });
         });
-
-        // Category cards
-        const categoryCards = document.querySelectorAll('.category-card');
-        categoryCards.forEach(card => {
+        document.querySelectorAll('.category-card').forEach(card => {
             card.addEventListener('click', () => {
-                const category = card.dataset.category;
-                if (category) {
-                    this.displayCategoryContent(category);
-                }
+                const cat = card.getAttribute('data-category');
+                if (cat) this.displayCategoryContent(cat);
             });
         });
     }
 
     showSearchSuggestions(query) {
-        const suggestionsContainer = document.getElementById('searchSuggestions');
-        if (!suggestionsContainer || !query.trim()) {
-            this.hideSearchSuggestions();
-            return;
-        }
-
-        const filtered = this.searchSuggestions.filter(suggestion =>
-            suggestion.toLowerCase().includes(query.toLowerCase())
-        ).slice(0, 5);
-
-        if (filtered.length > 0) {
-            suggestionsContainer.innerHTML = filtered.map(suggestion =>
-                `<div class="suggestion-item" data-suggestion="${suggestion}">${suggestion}</div>`
-            ).join('');
-            
-            suggestionsContainer.style.display = 'block';
-
-            // Add click handlers to suggestions
-            suggestionsContainer.querySelectorAll('.suggestion-item').forEach(item => {
+        const el = document.getElementById('searchSuggestions');
+        if (!el || !query.trim()) { this.hideSearchSuggestions(); return; }
+        const filtered = this.searchSuggestions.filter(s => s.toLowerCase().includes(query.toLowerCase())).slice(0, 5);
+        if (filtered.length) {
+            el.innerHTML = filtered.map(s => `<div class="suggestion-item">${s}</div>`).join('');
+            el.style.display = 'block';
+            el.querySelectorAll('.suggestion-item').forEach(item => {
                 item.addEventListener('click', () => {
-                    const searchInput = document.getElementById('searchInput');
-                    if (searchInput) {
-                        searchInput.value = item.dataset.suggestion;
-                    }
-                    this.performSearch(item.dataset.suggestion);
+                    const inp = document.getElementById('searchInput');
+                    if (inp) inp.value = item.textContent;
+                    this.quickSearch(item.textContent);
                     this.hideSearchSuggestions();
                 });
             });
-        } else {
-            this.hideSearchSuggestions();
-        }
+        } else this.hideSearchSuggestions();
     }
 
-    hideSearchSuggestions() {
-        const suggestionsContainer = document.getElementById('searchSuggestions');
-        if (suggestionsContainer) {
-            suggestionsContainer.style.display = 'none';
-        }
+    hideSearchSuggestions() { const el = document.getElementById('searchSuggestions'); if (el) el.style.display = 'none'; }
+
+    performSearch() {
+        const val = document.getElementById('searchInput')?.value?.trim();
+        if (val) this.quickSearch(val);
+        else this.showNotification('Masukkan kata kunci pencarian', 'warning');
     }
 
-    async performSearch(query) {
-        if (!query.trim()) {
-            this.showNotification('Masukkan kata kunci pencarian', 'warning');
-            return;
-        }
+    quickSearch(text) { this.toggleChatbot(true); this.sendMessage(text); }
 
-        // Simple search implementation - you can enhance this
-        this.showNotification(`Mencari: ${query}`, 'info');
-        
-        // For now, just show a simple alert - replace with actual search logic
-        setTimeout(() => {
-            this.showNotification(`Hasil pencarian untuk "${query}" akan ditampilkan di sini`, 'success');
-        }, 1000);
-    }
-
+    /* ============ CATEGORY DISPLAY ============ */
     async displayCategoryContent(category) {
         const main = document.querySelector('main');
         if (!main) return;
-
-        // Create results section
-        const resultsSection = document.createElement('section');
-        resultsSection.id = 'category-results-section';
-        resultsSection.innerHTML = `
-            <div class="section-header">
-                <h2>Solusi untuk Kategori: ${category.replace(/[_-]/g, ' ').toUpperCase()}</h2>
-                <button class="close-results" onclick="this.parentElement.parentElement.remove()">
-                    <i class="fas fa-times"></i> Tutup
-                </button>
-            </div>
-            <div id="category-results">
-                <div class="loading-message">
-                    <div class="loading-spinner"></div>
-                    <p>Memuat solusi...</p>
-                </div>
-            </div>
-        `;
-
-        // Insert after search section
-        const searchSection = document.getElementById('search-section');
-        if (searchSection && searchSection.nextSibling) {
-            main.insertBefore(resultsSection, searchSection.nextSibling);
-        } else {
-            main.appendChild(resultsSection);
-        }
-
-        // Scroll to results
-        resultsSection.scrollIntoView({ behavior: 'smooth' });
-
-        // Simulate loading and show mock results
-        setTimeout(() => {
-            this.showMockCategoryResults(category);
-        }, 1000);
-    }
-
-    showMockCategoryResults(category) {
-        const resultsContainer = document.getElementById('category-results');
-        if (!resultsContainer) return;
-
-        // Mock data based on category
-        const mockData = {
-            network: [
-                {
-                    title: 'Mengatasi WiFi yang Tidak Bisa Konek',
-                    description: 'Langkah-langkah untuk memperbaiki masalah koneksi WiFi',
-                    steps: ['Restart router', 'Periksa password WiFi', 'Update driver network', 'Reset network settings']
-                },
-                {
-                    title: 'Internet Lambat - Solusi Cepat',
-                    description: 'Cara mengatasi koneksi internet yang lambat',
-                    steps: ['Tes kecepatan internet', 'Tutup aplikasi yang tidak perlu', 'Ganti DNS', 'Hubungi provider']
-                }
-            ],
-            performance: [
-                {
-                    title: 'Mengatasi Laptop Lemot',
-                    description: 'Optimasi performa laptop yang berjalan lambat',
-                    steps: ['Bersihkan file temporary', 'Nonaktifkan startup programs', 'Scan virus', 'Defrag hard disk']
-                }
-            ],
-            os: [
-                {
-                    title: 'Mengatasi Blue Screen (BSOD)',
-                    description: 'Solusi untuk Blue Screen of Death',
-                    steps: ['Catat kode error', 'Boot ke Safe Mode', 'Update driver', 'Scan system files']
-                }
-            ]
-        };
-
-        const categoryData = mockData[category] || [];
-
-        resultsContainer.innerHTML = '';
-
-        if (categoryData.length === 0) {
-            resultsContainer.innerHTML = '<p>Belum ada solusi untuk kategori ini. Silakan hubungi support untuk bantuan lebih lanjut.</p>';
-            return;
-        }
-
-        categoryData.forEach(item => {
-            const resultCard = document.createElement('div');
-            resultCard.className = 'result-card';
-            resultCard.innerHTML = `
-                <h4>${item.title}</h4>
-                <p>${item.description}</p>
-                ${item.steps ? `
-                    <ol>
-                        ${item.steps.map(step => `<li>${step}</li>`).join('')}
-                    </ol>
-                ` : ''}
-            `;
-            resultsContainer.appendChild(resultCard);
-        });
-    }
-
-    setupChatbot() {
-        const openChatbot = document.getElementById('openChatbotButton');
-        const closeChatbot = document.getElementById('closeChatbotButton');
-        const minimizeChatbot = document.getElementById('minimizeChatbot');
-        const chatbotInput = document.getElementById('chatbotInput');
-        const sendButton = document.getElementById('sendChatbotButton');
-        const quickReplies = document.querySelectorAll('.quick-reply');
-
-        if (openChatbot) {
-            openChatbot.addEventListener('click', () => {
-                this.openChatbot();
-            });
-        }
-
-        if (closeChatbot) {
-            closeChatbot.addEventListener('click', () => {
-                this.closeChatbot();
-            });
-        }
-
-        if (minimizeChatbot) {
-            minimizeChatbot.addEventListener('click', () => {
-                this.minimizeChatbot();
-            });
-        }
-
-        if (chatbotInput && sendButton) {
-            chatbotInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    this.sendChatMessage();
-                }
-            });
-
-            sendButton.addEventListener('click', () => {
-                this.sendChatMessage();
-            });
-        }
-
-        // Quick replies
-        quickReplies.forEach(reply => {
-            reply.addEventListener('click', () => {
-                const message = reply.dataset.message;
-                if (chatbotInput) {
-                    chatbotInput.value = message;
-                }
-                this.sendChatMessage();
-            });
-        });
-
-        // Initialize message time
-        this.updateMessageTime();
-    }
-
-    openChatbot() {
-        const chatbotPopup = document.getElementById('chatbot-popup');
-        if (chatbotPopup) {
-            chatbotPopup.classList.remove('hidden', 'minimized');
-            const chatbotInput = document.getElementById('chatbotInput');
-            if (chatbotInput) {
-                chatbotInput.focus();
-            }
-        }
-    }
-
-    closeChatbot() {
-        const chatbotPopup = document.getElementById('chatbot-popup');
-        if (chatbotPopup) {
-            chatbotPopup.classList.add('hidden');
-        }
-    }
-
-    minimizeChatbot() {
-        const chatbotPopup = document.getElementById('chatbot-popup');
-        if (chatbotPopup) {
-            chatbotPopup.classList.toggle('minimized');
-        }
-    }
-
-    async sendChatMessage() {
-        const input = document.getElementById('chatbotInput');
-        if (!input) return;
-        
-        const message = input.value.trim();
-        if (!message) return;
-
-        // Add user message to chat
-        this.addChatMessage(message, 'user');
-        input.value = '';
-
-        // Show typing indicator
-        this.showTypingIndicator();
-
+        let sec = document.getElementById('category-results-section');
+        if (sec) sec.remove();
+        sec = document.createElement('section');
+        sec.id = 'category-results-section';
+        sec.innerHTML = `<div class="section-header"><h2>Solusi: ${category.replace(/[_-]/g, ' ').toUpperCase()}</h2><button class="btn btn-secondary" onclick="this.closest('section').remove()"><i class="fas fa-times"></i> Tutup</button></div><div id="category-results"><div class="loading-spinner"></div><p>Memuat solusi...</p></div>`;
+        main.insertBefore(sec, document.getElementById('search-section')?.nextSibling || main.firstChild);
+        sec.scrollIntoView({ behavior: 'smooth' });
         try {
-            const response = await fetch('/chat', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ message })
-            });
+            const res = await fetch('/solutions');
+            const data = await res.json();
+            const solutions = (data.data || data).filter(s => s.category === category);
+            const rc = document.getElementById('category-results');
+            if (!rc) return;
+            if (!solutions.length) { rc.innerHTML = '<p>Belum ada solusi untuk kategori ini.</p>'; return; }
+            rc.innerHTML = solutions.map(s => `<div class="result-card" style="background:var(--bg-card);padding:20px;border-radius:12px;margin-bottom:15px;border:1px solid var(--border-color);"><h4 style="color:var(--primary-color)">${s.title}</h4><p>${s.description}</p>${s.steps?.length ? `<ol>${s.steps.map(st => `<li>${st}</li>`).join('')}</ol>` : ''}</div>`).join('');
+        } catch (e) { const rc = document.getElementById('category-results'); if (rc) rc.innerHTML = '<p>Gagal memuat solusi.</p>'; }
+    }
 
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+    /* ============ CHATBOT ============ */
+    setupChatbot() {
+        const input = document.getElementById('chatbotInput');
+        if (input) input.addEventListener('keypress', (e) => { if (e.key === 'Enter') this.sendMessage(); });
+        document.getElementById('sendChatbotButton')?.addEventListener('click', () => this.sendMessage());
+    }
+
+    toggleChatbot(forceOpen = null) {
+        const popup = document.getElementById('chatbot-popup');
+        if (!popup) return;
+        if (forceOpen === true) popup.classList.remove('hidden');
+        else if (forceOpen === false) popup.classList.add('hidden');
+        else popup.classList.toggle('hidden');
+        if (!popup.classList.contains('hidden')) {
+            document.getElementById('chatbotInput')?.focus();
+            this.scrollChatToBottom();
+            this.clearUnreadBadge();
+        }
+    }
+
+    openChatbot() { this.toggleChatbot(true); }
+    closeChatbot() { this.toggleChatbot(false); }
+
+    scrollChatToBottom() {
+        const mc = document.getElementById('chatbot-messages');
+        if (mc) mc.scrollTop = mc.scrollHeight;
+    }
+
+    showTyping(show) {
+        const indicator = document.getElementById('typing-indicator');
+        if (!indicator) return;
+        if (show) { indicator.classList.remove('hidden'); document.getElementById('chatbot-messages')?.appendChild(indicator); }
+        else indicator.classList.add('hidden');
+        this.scrollChatToBottom();
+    }
+
+    async sendMessage(manualText = null) {
+        const input = document.getElementById('chatbotInput');
+        const text = manualText || input?.value?.trim();
+        if (!text) return;
+        this.addMessage(text, 'user');
+        if (!manualText && input) input.value = '';
+        this.showTyping(true);
+        this.playSound('send');
+        try {
+            if (this.isDiagnosisMode) { await this.handleDiagnosisLogic(text); }
+            else {
+                const res = await fetch('/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: text }) });
+                const data = await res.json();
+                this.showTyping(false);
+                await this.typeEffect(data.response, 'bot');
+                if (data.type === 'diagnosis_start') this.startDiagnosisFlow(false);
             }
-
-            const data = await response.json();
-            
-            // Remove typing indicator
-            this.removeTypingIndicator();
-            
-            // Add bot response
-            this.addChatMessage(data.response, 'bot');
-
-        } catch (error) {
-            console.error('Chat error:', error);
-            this.removeTypingIndicator();
-            this.addChatMessage('Maaf, terjadi kesalahan. Silakan coba lagi.', 'bot');
-        }
+        } catch (e) { this.showTyping(false); this.addMessage('Maaf, koneksi server terputus.', 'bot'); console.error(e); }
     }
 
-    addChatMessage(message, sender) {
-        const messagesContainer = document.getElementById('chatbot-messages');
-        if (!messagesContainer) return;
-
-        const messageDiv = document.createElement('div');
-        messageDiv.className = `message ${sender}-message`;
-        
-        const currentTime = new Date().toLocaleTimeString('id-ID', { 
-            hour: '2-digit', 
-            minute: '2-digit' 
+    /* ============ TYPING EFFECT ============ */
+    async typeEffect(fullText, sender) {
+        const msgId = 'msg-' + Date.now();
+        this.lastBotMsgId = msgId;
+        this.prepareMessageContainer(fullText, sender, msgId);
+        const msgEl = document.getElementById(msgId);
+        if (!msgEl) return;
+        const p = msgEl.querySelector('p');
+        if (!p) return;
+        const chars = fullText.split('');
+        const speed = Math.max(15, Math.min(40, 300 / chars.length));
+        let i = 0;
+        return new Promise(resolve => {
+            const interval = setInterval(() => {
+                if (i < chars.length) {
+                    p.textContent += chars[i];
+                    i++;
+                    this.scrollChatToBottom();
+                } else {
+                    clearInterval(interval);
+                    this.addFeedbackButtons(msgId);
+                    this.incrementUnread();
+                    this.showBrowserNotification(fullText.substring(0, 60) + '...');
+                    this.playSound('receive');
+                    resolve();
+                }
+            }, speed);
         });
+    }
 
+    addMessage(text, sender) {
+        const msgId = 'msg-' + Date.now();
+        if (sender === 'bot') this.lastBotMsgId = msgId;
+        this.prepareMessageContainer(text, sender, msgId);
         if (sender === 'bot') {
-            messageDiv.innerHTML = `
-                <div class="message-avatar">
-                    <i class="fas fa-robot"></i>
-                </div>
-                <div class="message-content">
-                    <p>${message.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')}</p>
-                    <span class="message-time">${currentTime}</span>
-                </div>
-            `;
-        } else {
-            messageDiv.innerHTML = `
-                <div class="message-content">
-                    <p>${message}</p>
-                    <span class="message-time">${currentTime}</span>
-                </div>
-                <div class="message-avatar">
-                    <i class="fas fa-user"></i>
-                </div>
-            `;
+            this.addFeedbackButtons(msgId);
+            this.incrementUnread();
+            if (!document.getElementById('chatbot-popup')?.classList.contains('hidden')) {
+                this.showBrowserNotification(text.substring(0, 60) + '...');
+            }
+            this.playSound('receive');
         }
-
-        messagesContainer.appendChild(messageDiv);
-        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        this.scrollChatToBottom();
     }
 
-    showTypingIndicator() {
-        const messagesContainer = document.getElementById('chatbot-messages');
-        if (!messagesContainer) return;
-
-        const typingDiv = document.createElement('div');
-        typingDiv.className = 'message bot-message typing-indicator';
-        typingDiv.innerHTML = `
-            <div class="message-avatar">
-                <i class="fas fa-robot"></i>
-            </div>
-            <div class="message-content">
-                <div class="typing-dots">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                </div>
-            </div>
-        `;
-
-        messagesContainer.appendChild(typingDiv);
-        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    prepareMessageContainer(text, sender, msgId) {
+        const container = document.getElementById('chatbot-messages');
+        if (!container) return;
+        const div = document.createElement('div');
+        div.className = `message ${sender}-message`;
+        div.id = msgId;
+        const avatar = sender === 'bot' ? 'fas fa-robot' : 'fas fa-user';
+        const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        div.innerHTML = `<div class="message-avatar"><i class="${avatar}"></i></div><div class="message-content"><p>${sender === 'user' ? text : ''}</p><span class="message-time">${time}</span></div>`;
+        const typing = document.getElementById('typing-indicator');
+        container.insertBefore(div, typing);
     }
 
-    removeTypingIndicator() {
-        const typingIndicator = document.querySelector('.typing-indicator');
-        if (typingIndicator) {
-            typingIndicator.remove();
-        }
+    /* ============ FEEDBACK SYSTEM ============ */
+    addFeedbackButtons(msgId) {
+        const msgEl = document.getElementById(msgId);
+        if (!msgEl) return;
+        const content = msgEl.querySelector('.message-content');
+        if (!content) return;
+        const fb = document.createElement('div');
+        fb.className = 'feedback-buttons';
+        fb.innerHTML = `<button class="fb-btn fb-up" title="Membantu"><i class="fas fa-thumbs-up"></i></button><button class="fb-btn fb-down" title="Tidak membantu"><i class="fas fa-thumbs-down"></i></button>`;
+        fb.querySelector('.fb-up').addEventListener('click', () => this.sendFeedback('up', fb));
+        fb.querySelector('.fb-down').addEventListener('click', () => this.sendFeedback('down', fb));
+        content.appendChild(fb);
     }
 
-    updateMessageTime() {
-        const messageTime = document.querySelector('.bot-message .message-time');
-        if (messageTime) {
-            const currentTime = new Date().toLocaleTimeString('id-ID', { 
-                hour: '2-digit', 
-                minute: '2-digit' 
-            });
-            messageTime.textContent = currentTime;
+    async sendFeedback(type, fbEl) {
+        fbEl.querySelectorAll('button').forEach(b => b.disabled = true);
+        fbEl.querySelector(`.fb-${type}`).classList.add('active');
+        try {
+            await fetch('/api/chat-feedback', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ feedback: type }) });
+            this.showNotification(type === 'up' ? '👍 Terima kasih!' : '👎 Akan kami perbaiki.', 'info');
+        } catch (e) { /* silent */ }
+    }
+
+    /* ============ BROWSER NOTIFICATIONS ============ */
+    async requestNotificationPermission() {
+        if (!('Notification' in window)) return;
+        if (Notification.permission === 'granted') { this.notificationGranted = true; return; }
+        if (Notification.permission !== 'denied') {
+            const perm = await Notification.requestPermission();
+            this.notificationGranted = perm === 'granted';
         }
     }
 
-    setupQuickActions() {
-        const quickActionCards = document.querySelectorAll('.quick-action-card');
-        quickActionCards.forEach(card => {
-            card.addEventListener('click', () => {
-                const action = card.dataset.action;
-                this.handleQuickAction(action);
-            });
+    showBrowserNotification(text) {
+        if (!this.notificationGranted || document.getElementById('chatbot-popup')?.classList.contains('hidden') === false) return;
+        try {
+            new Notification('IT Support AI', { body: text, icon: '/static/favicon.ico', tag: 'chat-msg' });
+        } catch (e) { /* ignore */ }
+    }
+
+    /* ============ UNREAD BADGE ============ */
+    incrementUnread() {
+        this.unreadCount++;
+        this.updateUnreadBadge();
+    }
+
+    clearUnreadBadge() {
+        this.unreadCount = 0;
+        this.updateUnreadBadge();
+    }
+
+    updateUnreadBadge() {
+        const fab = document.getElementById('fab-chat-btn');
+        if (!fab) return;
+        let badge = fab.querySelector('.unread-badge');
+        if (this.unreadCount > 0) {
+            if (!badge) {
+                badge = document.createElement('span');
+                badge.className = 'unread-badge';
+                fab.appendChild(badge);
+            }
+            badge.textContent = this.unreadCount > 99 ? '99+' : this.unreadCount;
+        } else if (badge) {
+            badge.remove();
+        }
+    }
+
+    /* ============ SOUND EFFECTS (Web Audio API) ============ */
+    playSound(type) {
+        if (!this.soundEnabled) return;
+        try {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            gain.gain.value = 0.05;
+            if (type === 'send') { osc.type = 'sine'; osc.frequency.value = 600; gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.1); }
+            else if (type === 'receive') { osc.type = 'sine'; osc.frequency.value = 800; gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2); }
+            osc.start(ctx.currentTime);
+            osc.stop(ctx.currentTime + 0.2);
+        } catch (e) { /* Web Audio not supported */ }
+    }
+
+    /* ============ DIAGNOSIS (EXPERT SYSTEM) ============ */
+    async startDiagnosisFlow(openWindow = true) {
+        if (openWindow) this.toggleChatbot(true);
+        this.isDiagnosisMode = true;
+        this.currentNodeId = null;
+        document.querySelectorAll('.quick-replies-dynamic').forEach(el => el.remove());
+        await this.handleDiagnosisLogic(null);
+    }
+
+    async handleDiagnosisLogic(userAnswer) {
+        try {
+            const [nodesRes, edgesRes] = await Promise.all([fetch('/api/nodes'), fetch('/api/edges')]);
+            const nodes = await nodesRes.json();
+            const edges = await edgesRes.json();
+            let nextNode = null;
+            if (this.currentNodeId === null) { nextNode = nodes.find(n => n.is_root); }
+            else {
+                const edge = edges.find(e => e.source_id === this.currentNodeId && e.label.toLowerCase() === userAnswer?.toLowerCase());
+                if (edge) nextNode = nodes.find(n => n.id === edge.target_id);
+                else { this.showTyping(false); this.addMessage('Jawaban tidak sesuai opsi. Silakan klik tombol di bawah.', 'bot'); const currentEdges = edges.filter(e => e.source_id === this.currentNodeId); this.showOptions(currentEdges.map(e => e.label)); return; }
+            }
+            this.showTyping(false);
+            if (!nextNode) return;
+            this.currentNodeId = nextNode.id;
+            await this.typeEffect(nextNode.content, 'bot');
+            if (nextNode.type === 'solution') { this.isDiagnosisMode = false; this.currentNodeId = null; setTimeout(() => this.addMessage('Semoga membantu! Ada lagi yang bisa saya bantu?', 'bot'), 800); }
+            else { const opts = edges.filter(e => e.source_id === nextNode.id).map(e => e.label); if (opts.length) this.showOptions(opts); else { this.isDiagnosisMode = false; this.addMessage('Maaf, data diagnosa belum lengkap.', 'bot'); } }
+        } catch (e) { console.error('Diagnosis Error:', e); this.showTyping(false); this.addMessage('Gagal memuat sistem pakar.', 'bot'); }
+    }
+
+    showOptions(options) {
+        const container = document.getElementById('chatbot-messages');
+        if (!container) return;
+        const div = document.createElement('div');
+        div.className = 'quick-replies quick-replies-dynamic';
+        div.style.cssText = 'display:flex;flex-wrap:wrap;gap:10px;margin:10px 0 10px 40px;';
+        options.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.className = 'quick-reply';
+            btn.textContent = opt;
+            btn.addEventListener('click', () => { div.remove(); this.sendMessage(opt); });
+            div.appendChild(btn);
         });
+        const typing = document.getElementById('typing-indicator');
+        container.insertBefore(div, typing);
+        this.scrollChatToBottom();
+    }
 
-        // FAB menu
-        const fabMain = document.getElementById('fabMain');
-        const fabMenu = document.getElementById('fabMenu');
-        const fabItems = document.querySelectorAll('.fab-item');
+    /* ============ EXTRA EVENT LISTENERS ============ */
+    setupExtraListeners() {
+        document.getElementById('nav-ai-assistant')?.addEventListener('click', (e) => { e.preventDefault(); this.toggleChatbot(true); });
+        document.getElementById('hero-chat-btn')?.addEventListener('click', () => this.toggleChatbot(true));
+        document.getElementById('fab-chat-btn')?.addEventListener('click', () => this.toggleChatbot());
+        document.getElementById('chatbot-close-btn')?.addEventListener('click', () => this.toggleChatbot(false));
+        document.getElementById('diagnosis-reset-btn')?.addEventListener('click', () => this.startDiagnosisFlow(true));
+        document.getElementById('start-diagnosis-btn')?.addEventListener('click', () => this.startDiagnosisFlow(true));
+        document.getElementById('ticket-modal-overlay')?.addEventListener('click', () => this.closeTicketModal());
+        document.getElementById('ticket-modal-close')?.addEventListener('click', () => this.closeTicketModal());
+        document.getElementById('ticket-cancel-btn')?.addEventListener('click', () => this.closeTicketModal());
+        document.querySelectorAll('#initial-quick-replies .quick-reply[data-quick]').forEach(btn => {
+            btn.addEventListener('click', () => { const action = btn.getAttribute('data-quick'); if (action === 'diagnosis') this.startDiagnosisFlow(false); else this.quickSearch(action); });
+        });
+    }
 
-        if (fabMain && fabMenu) {
-            fabMain.addEventListener('click', () => {
-                fabMenu.classList.toggle('active');
-            });
-        }
-
-        fabItems.forEach(item => {
-            item.addEventListener('click', () => {
-                const action = item.dataset.action;
-                this.handleQuickAction(action);
+    /* ============ QUICK ACTIONS ============ */
+    setupQuickActions() {
+        document.querySelectorAll('.quick-action-card').forEach(card => {
+            card.addEventListener('click', () => {
+                const action = card.getAttribute('data-action');
+                if (action) this.handleQuickAction(action);
             });
         });
     }
 
     handleQuickAction(action) {
         switch (action) {
-            case 'create-ticket':
-            case 'ticket':
-                this.openTicketModal();
-                break;
-            case 'system-check':
-                this.showNotification('Memulai diagnosa sistem...', 'info');
-                break;
-            case 'remote-help':
-                this.showNotification('Fitur bantuan remote akan segera tersedia', 'info');
-                break;
-            case 'knowledge-base':
-                // Scroll to categories section
-                const categoriesSection = document.getElementById('categories-section');
-                if (categoriesSection) {
-                    categoriesSection.scrollIntoView({ behavior: 'smooth' });
-                    this.showNotification('Jelajahi kategori solusi di bawah ini', 'info');
-                } else {
-                    this.showNotification('Membuka knowledge base...', 'info');
-                }
-                break;
-            case 'chat':
-                this.openChatbot();
-                break;
-            case 'call':
-                this.showNotification('Hubungi: +62 123 456 7890', 'info');
-                break;
-            default:
-                this.showNotification('Fitur ini akan segera tersedia', 'info');
+            case 'ticket': this.openTicketModal(); break;
+            case 'diagnosis': document.getElementById('diagnostic-section')?.scrollIntoView({ behavior: 'smooth' }); this.startDiagnosisFlow(false); break;
+            case 'chat': this.toggleChatbot(true); break;
         }
     }
 
-    setupAnimations() {
-        // Intersection Observer for animations
-        const observerOptions = {
-            threshold: 0.1,
-            rootMargin: '0px 0px -50px 0px'
-        };
-
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('animate-in');
-                }
-            });
-        }, observerOptions);
-
-        // Observe elements for animation
-        document.querySelectorAll('.category-card, .quick-action-card, .stat-item').forEach(el => {
-            observer.observe(el);
+    /* ============ TICKET MODAL ============ */
+    setupTicketModal() {
+        const form = document.getElementById('ticket-form');
+        if (!form) return;
+        form.addEventListener('submit', (e) => { e.preventDefault(); this.submitTicket(form); });
+        ['ticket-name', 'ticket-email', 'ticket-subject', 'ticket-description'].forEach(id => {
+            const field = document.getElementById(id);
+            if (field) { field.addEventListener('blur', () => this.validateField(field)); field.addEventListener('input', () => this.clearFieldError(field)); }
         });
     }
 
-    setupStats() {
-        const statNumbers = document.querySelectorAll('.stat-number');
-        
-        const animateStats = () => {
-            statNumbers.forEach(stat => {
-                const target = parseInt(stat.dataset.target);
-                const current = parseInt(stat.textContent);
-                const increment = target / 100;
-                
-                if (current < target) {
-                    stat.textContent = Math.ceil(current + increment);
-                    setTimeout(animateStats, 20);
-                }
-            });
-        };
+    openTicketModal() { const modal = document.getElementById('ticket-modal'); if (!modal) return; modal.classList.remove('hidden'); document.body.style.overflow = 'hidden'; setTimeout(() => document.getElementById('ticket-name')?.focus(), 100); }
+    closeTicketModal() { const modal = document.getElementById('ticket-modal'); if (!modal) return; modal.classList.add('hidden'); document.body.style.overflow = ''; document.getElementById('ticket-form')?.reset(); document.querySelectorAll('#ticket-form .error').forEach(f => this.clearFieldError(f)); }
 
-        // Start animation when stats section is visible
-        const statsSection = document.getElementById('stats-section');
-        if (statsSection) {
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        animateStats();
-                        observer.unobserve(entry.target);
-                    }
-                });
-            });
-            observer.observe(statsSection);
+    validateField(field) {
+        const v = field.value.trim(); let ok = true, msg = ''; this.clearFieldError(field);
+        switch (field.id) {
+            case 'ticket-name': if (!v) { msg = 'Nama harus diisi'; ok = false; } else if (v.length < 2) { msg = 'Minimal 2 karakter'; ok = false; } break;
+            case 'ticket-email': if (!v) { msg = 'Email harus diisi'; ok = false; } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) { msg = 'Format email tidak valid'; ok = false; } break;
+            case 'ticket-subject': if (!v) { msg = 'Judul harus diisi'; ok = false; } else if (v.length < 5) { msg = 'Minimal 5 karakter'; ok = false; } break;
+            case 'ticket-description': if (!v) { msg = 'Deskripsi harus diisi'; ok = false; } else if (v.length < 10) { msg = 'Minimal 10 karakter'; ok = false; } break;
         }
+        if (!ok) this.showFieldError(field, msg);
+        return ok;
     }
 
-    setupBackToTop() {
-        const backToTopBtn = document.getElementById('backToTop');
-        if (backToTopBtn) {
-            backToTopBtn.addEventListener('click', () => {
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            });
-        }
+    showFieldError(field, msg) { field.classList.add('error'); const ex = field.parentNode.querySelector('.field-error'); if (ex) ex.remove(); const d = document.createElement('div'); d.className = 'field-error'; d.textContent = msg; field.parentNode.appendChild(d); }
+    clearFieldError(field) { field.classList.remove('error'); const ex = field.parentNode.querySelector('.field-error'); if (ex) ex.remove(); }
+
+    async submitTicket(form) {
+        const btn = form.querySelector('button[type="submit"]'); if (!btn) return; const orig = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Mengirim...'; btn.disabled = true;
+        const formData = new FormData(form); const data = Object.fromEntries(formData.entries());
+        try {
+            const res = await fetch('/tickets', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+            if (res.ok) { const json = await res.json(); this.showNotification(`Tiket berhasil dikirim! ID: #${json.ticket_id}`, 'success'); form.reset(); this.closeTicketModal(); }
+            else throw new Error('Gagal');
+        } catch (e) { this.showNotification('Gagal mengirim tiket. Coba lagi.', 'error'); }
+        finally { btn.innerHTML = orig; btn.disabled = false; }
     }
 
-    handleBackToTop() {
-        const backToTopBtn = document.getElementById('backToTop');
-        if (backToTopBtn) {
-            if (window.scrollY > 300) {
-                backToTopBtn.classList.add('visible');
-            } else {
-                backToTopBtn.classList.remove('visible');
-            }
-        }
+    /* ============ ANIMATIONS & BACK TO TOP ============ */
+    setupAnimations() {
+        const observer = new IntersectionObserver((entries) => { entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('animate-in'); }); }, { threshold: 0.1 });
+        document.querySelectorAll('.category-card, .quick-action-card, .stat-item').forEach(el => observer.observe(el));
     }
+    setupBackToTop() { document.getElementById('backToTop')?.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' })); }
+    handleBackToTop() { const btn = document.getElementById('backToTop'); if (btn) btn.classList.toggle('visible', window.scrollY > 300); }
 
-    showNotification(message, type = 'info') {
-        // Create notification container if it doesn't exist
+    /* ============ NOTIFICATIONS ============ */
+    showNotification(msg, type = 'info') {
         let container = document.getElementById('notification-container');
-        if (!container) {
-            container = document.createElement('div');
-            container.id = 'notification-container';
-            container.className = 'notification-container';
-            document.body.appendChild(container);
-        }
-
-        // Create notification element
-        const notification = document.createElement('div');
-        notification.className = `notification notification-${type}`;
-        
-        const iconMap = {
-            success: 'fas fa-check-circle',
-            error: 'fas fa-exclamation-circle',
-            warning: 'fas fa-exclamation-triangle',
-            info: 'fas fa-info-circle'
-        };
-
-        notification.innerHTML = `
-            <i class="${iconMap[type] || iconMap.info}"></i>
-            <span>${message}</span>
-            <button class="notification-close" onclick="this.parentElement.remove()">
-                <i class="fas fa-times"></i>
-            </button>
-        `;
-
-        container.appendChild(notification);
-
-        // Auto remove after 5 seconds
-        setTimeout(() => {
-            if (notification.parentElement) {
-                notification.remove();
-            }
-        }, 5000);
-
-        // Animate in
-        setTimeout(() => {
-            notification.classList.add('show');
-        }, 100);
+        if (!container) { container = document.createElement('div'); container.id = 'notification-container'; container.className = 'notification-container'; document.body.appendChild(container); }
+        const icons = { success: 'fa-check-circle', error: 'fa-exclamation-circle', warning: 'fa-exclamation-triangle', info: 'fa-info-circle' };
+        const notif = document.createElement('div'); notif.className = `notification ${type}`;
+        notif.innerHTML = `<i class="fas ${icons[type] || icons.info}"></i> <span>${msg}</span>`;
+        container.appendChild(notif); setTimeout(() => notif.remove(), 4000);
     }
 
+    /* ============ CONTENT LOADER ============ */
     async loadContent() {
         try {
-            // Load solutions with better error handling
-            const solutionsResponse = await fetch('/solutions');
-            if (solutionsResponse.ok) {
-                const solutionsData = await solutionsResponse.json();
-                // Handle new API response format
-                const solutions = solutionsData.data || solutionsData;
-                if (Array.isArray(solutions)) {
-                    this.solutions = solutions;
-                    this.updateCategoryStats();
-                } else {
-                    console.warn('Solutions data is not an array:', solutionsData);
-                    this.showNotification('Gagal memuat data solusi', 'error');
-                }
-            } else {
-                const errorData = await solutionsResponse.json();
-                console.error('Error loading solutions:', errorData);
-                this.showNotification(errorData.message || 'Gagal memuat data solusi', 'error');
-            }
-
-            // Load FAQs with better error handling
-            const faqsResponse = await fetch('/faqs');
-            if (faqsResponse.ok) {
-                const faqsData = await faqsResponse.json();
-                // Handle new API response format
-                const faqs = faqsData.data || faqsData;
-                if (Array.isArray(faqs)) {
-                    this.faqs = faqs;
-                } else {
-                    console.warn('FAQs data is not an array:', faqsData);
-                    this.showNotification('Gagal memuat data FAQ', 'error');
-                }
-            } else {
-                const errorData = await faqsResponse.json();
-                console.error('Error loading FAQs:', errorData);
-                this.showNotification(errorData.message || 'Gagal memuat data FAQ', 'error');
-            }
-
-            // Show success notification if data loaded
-            if (this.solutions && this.solutions.length > 0) {
-                this.showNotification(`${this.solutions.length} solusi berhasil dimuat`, 'success');
-            }
-            
-        } catch (error) {
-            console.error('Error loading content:', error);
-            this.showNotification('Terjadi kesalahan saat memuat data', 'error');
-        }
+            const [solRes, faqRes] = await Promise.all([fetch('/solutions'), fetch('/faqs')]);
+            if (solRes.ok) this.solutions = ((await solRes.json()).data) || [];
+            if (faqRes.ok) this.faqs = ((await faqRes.json()).data) || [];
+            this.updateCategoryStats();
+        } catch (e) { console.error('Load content error:', e); }
     }
 
     updateCategoryStats() {
-        // Initialize solutions and faqs arrays if not already done
-        this.solutions = this.solutions || [];
-        this.faqs = this.faqs || [];
-        
-        // Update category counts in the UI
-        const categoryCards = document.querySelectorAll('.category-card');
-        categoryCards.forEach(card => {
-            const category = card.dataset.category;
-            if (category) {
-                const solutionCount = this.solutions.filter(s => s.category === category).length;
-                const statElement = card.querySelector('.category-stats span');
-                if (statElement) {
-                    statElement.innerHTML = `<i class="fas fa-lightbulb"></i> ${solutionCount} Solusi`;
-                }
-            }
+        document.querySelectorAll('.category-card').forEach(card => {
+            const cat = card.getAttribute('data-category');
+            if (cat) { const count = (this.solutions || []).filter(s => s.category === cat).length; const stat = card.querySelector('.category-stats span'); if (stat) stat.innerHTML = `<i class="fas fa-lightbulb"></i> ${count} Solusi`; }
         });
-    }
-
-    setupTicketModal() {
-        const ticketForm = document.getElementById('ticket-form');
-        if (ticketForm) {
-            ticketForm.addEventListener('submit', (e) => {
-                e.preventDefault();
-                this.submitTicket();
-            });
-        }
-
-        // Setup form validation
-        const requiredFields = ['ticket-name', 'ticket-email', 'ticket-subject', 'ticket-description'];
-        requiredFields.forEach(fieldId => {
-            const field = document.getElementById(fieldId);
-            if (field) {
-                field.addEventListener('blur', () => this.validateField(field));
-                field.addEventListener('input', () => this.clearFieldError(field));
-            }
-        });
-    }
-
-    openTicketModal() {
-        const modal = document.getElementById('ticket-modal');
-        if (modal) {
-            modal.classList.remove('hidden');
-            document.body.style.overflow = 'hidden';
-            
-            // Focus on first input
-            const firstInput = document.getElementById('ticket-name');
-            if (firstInput) {
-                setTimeout(() => firstInput.focus(), 100);
-            }
-        }
-    }
-
-    closeTicketModal() {
-        const modal = document.getElementById('ticket-modal');
-        if (modal) {
-            modal.classList.add('hidden');
-            document.body.style.overflow = '';
-            
-            // Reset form
-            const form = document.getElementById('ticket-form');
-            if (form) {
-                form.reset();
-                this.clearAllFieldErrors();
-            }
-        }
-    }
-
-    validateField(field) {
-        const value = field.value.trim();
-        let isValid = true;
-        let errorMessage = '';
-
-        // Remove existing error
-        this.clearFieldError(field);
-
-        switch (field.id) {
-            case 'ticket-name':
-                if (!value) {
-                    errorMessage = 'Nama lengkap harus diisi';
-                    isValid = false;
-                } else if (value.length < 2) {
-                    errorMessage = 'Nama minimal 2 karakter';
-                    isValid = false;
-                }
-                break;
-
-            case 'ticket-email':
-                if (!value) {
-                    errorMessage = 'Email harus diisi';
-                    isValid = false;
-                } else if (!this.isValidEmail(value)) {
-                    errorMessage = 'Format email tidak valid';
-                    isValid = false;
-                }
-                break;
-
-            case 'ticket-subject':
-                if (!value) {
-                    errorMessage = 'Judul masalah harus diisi';
-                    isValid = false;
-                } else if (value.length < 5) {
-                    errorMessage = 'Judul minimal 5 karakter';
-                    isValid = false;
-                } else if (value.length > 250) {
-                    errorMessage = 'Judul maksimal 250 karakter';
-                    isValid = false;
-                }
-                break;
-
-            case 'ticket-description':
-                if (!value) {
-                    errorMessage = 'Deskripsi harus diisi';
-                    isValid = false;
-                } else if (value.length < 10) {
-                    errorMessage = 'Deskripsi minimal 10 karakter';
-                    isValid = false;
-                } else if (value.length > 2000) {
-                    errorMessage = 'Deskripsi maksimal 2000 karakter';
-                    isValid = false;
-                }
-                break;
-        }
-
-        if (!isValid) {
-            this.showFieldError(field, errorMessage);
-        }
-
-        return isValid;
-    }
-
-    isValidEmail(email) {
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return emailRegex.test(email);
-    }
-
-    showFieldError(field, message) {
-        field.classList.add('error');
-        
-        // Remove existing error message
-        const existingError = field.parentNode.querySelector('.field-error');
-        if (existingError) {
-            existingError.remove();
-        }
-
-        // Add new error message
-        const errorDiv = document.createElement('div');
-        errorDiv.className = 'field-error';
-        errorDiv.textContent = message;
-        field.parentNode.appendChild(errorDiv);
-    }
-
-    clearFieldError(field) {
-        field.classList.remove('error');
-        const errorDiv = field.parentNode.querySelector('.field-error');
-        if (errorDiv) {
-            errorDiv.remove();
-        }
-    }
-
-    clearAllFieldErrors() {
-        const errorFields = document.querySelectorAll('#ticket-form .error');
-        errorFields.forEach(field => this.clearFieldError(field));
-    }
-
-    async submitTicket() {
-        const form = document.getElementById('ticket-form');
-        const submitBtn = document.getElementById('submit-ticket-btn');
-        
-        if (!form || !submitBtn) return;
-
-        // Validate all fields
-        const requiredFields = ['ticket-name', 'ticket-email', 'ticket-subject', 'ticket-description'];
-        let isFormValid = true;
-
-        requiredFields.forEach(fieldId => {
-            const field = document.getElementById(fieldId);
-            if (field && !this.validateField(field)) {
-                isFormValid = false;
-            }
-        });
-
-        if (!isFormValid) {
-            this.showNotification('Mohon perbaiki kesalahan pada form', 'error');
-            return;
-        }
-
-        // Disable submit button and show loading
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Mengirim...';
-
-        try {
-            const formData = new FormData(form);
-            const ticketData = {
-                user_name: formData.get('user_name'),
-                user_email: formData.get('user_email'),
-                category: formData.get('category'),
-                priority: formData.get('priority'),
-                subject: formData.get('subject'),
-                description: formData.get('description')
-            };
-
-            const response = await fetch('/api/tickets/create', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(ticketData)
-            });
-
-            const result = await response.json();
-
-            if (response.ok && result.success) {
-                this.showNotification(result.message, 'success');
-                this.closeTicketModal();
-                
-                // Show additional success info
-                setTimeout(() => {
-                    this.showNotification(`Nomor tiket Anda: #${result.ticket_id}`, 'info');
-                }, 2000);
-            } else {
-                throw new Error(result.error || 'Gagal mengirim tiket');
-            }
-
-        } catch (error) {
-            console.error('Error submitting ticket:', error);
-            this.showNotification(error.message || 'Terjadi kesalahan saat mengirim tiket', 'error');
-        } finally {
-            // Re-enable submit button
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Kirim Tiket';
-        }
     }
 }
 
-// Initialize the app when DOM is loaded
-document.addEventListener('DOMContentLoaded', () => {
-    window.itSupportApp = new ITSupportApp();
-});
-
-// Global functions for modal controls
-function closeTicketModal() {
-    if (window.itSupportApp) {
-        window.itSupportApp.closeTicketModal();
-    }
-}
-
-// Legacy support for existing functionality
-document.addEventListener("DOMContentLoaded", () => {
-    const searchInput = document.getElementById("searchInput");
-    const searchButton = document.getElementById("searchButton");
-    const openChatbotButton = document.getElementById("openChatbotButton");
-    const chatbotPopup = document.getElementById("chatbot-popup");
-    const closeChatbotButton = document.getElementById("closeChatbotButton");
-    const chatbotMessages = document.getElementById("chatbot-messages");
-    const chatbotInput = document.getElementById("chatbotInput");
-    const sendChatbotButton = document.getElementById("sendChatbotButton");
-
-    // Legacy search functionality
-    if (searchButton && !window.itSupportApp) {
-        searchButton.addEventListener("click", () => {
-            const query = searchInput?.value.trim();
-            if (query) {
-                alert(`Mencari: ${query}`);
-            }
-        });
-    }
-
-    // Legacy chatbot functionality
-    if (sendChatbotButton && !window.itSupportApp) {
-        sendChatbotButton.addEventListener("click", () => {
-            sendMessage();
-        });
-    }
-
-    if (chatbotInput && !window.itSupportApp) {
-        chatbotInput.addEventListener("keypress", (e) => {
-            if (e.key === "Enter") {
-                sendMessage();
-            }
-        });
-    }
-
-    function sendMessage() {
-        if (!chatbotInput || !chatbotMessages) return;
-        
-        const messageText = chatbotInput.value.trim();
-        if (messageText) {
-            const userMessageDiv = document.createElement("div");
-            userMessageDiv.classList.add("message", "user-message");
-            userMessageDiv.textContent = messageText;
-            chatbotMessages.appendChild(userMessageDiv);
-            chatbotInput.value = "";
-            chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
-
-            // Add loading indicator
-            const loadingDiv = document.createElement("div");
-            loadingDiv.classList.add("message", "bot-message", "loading-indicator");
-            loadingDiv.innerHTML = '<span class="dot"></span><span class="dot"></span><span class="dot"></span>';
-            loadingDiv.id = "loading-indicator";
-            chatbotMessages.appendChild(loadingDiv);
-            chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
-
-            // Send message to backend
-            fetch("/chat", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ message: messageText }),
-            })
-            .then((response) => {
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                return response.json();
-            })
-            .then((data) => {
-                // Remove loading indicator
-                const existingLoading = document.getElementById("loading-indicator");
-                if (existingLoading) {
-                    existingLoading.remove();
-                }
-
-                const botMessageDiv = document.createElement("div");
-                botMessageDiv.classList.add("message", "bot-message");
-                botMessageDiv.innerHTML = data.response.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
-                chatbotMessages.appendChild(botMessageDiv);
-                chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
-            })
-            .catch((error) => {
-                console.error("Error:", error);
-                const existingLoading = document.getElementById("loading-indicator");
-                if (existingLoading) {
-                    existingLoading.remove();
-                }
-                const errorMessageDiv = document.createElement("div");
-                errorMessageDiv.classList.add("message", "bot-message");
-                errorMessageDiv.textContent = `Maaf, terjadi kesalahan: ${error.message}`;
-                chatbotMessages.appendChild(errorMessageDiv);
-                chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
-            });
-        }
-    }
-});
+document.addEventListener('DOMContentLoaded', () => { window.itSupportApp = new ITSupportApp(); });
