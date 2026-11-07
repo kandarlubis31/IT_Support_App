@@ -104,7 +104,7 @@ instance/           SQLite database (created at runtime)
 
 - `.env` and `instance/` are local-only and should not be committed with real data.
 - `PLAN.md`, `IMPLEMENTATION_SUMMARY.md`, and `OPTIMIZATION_REPORT.md` are working
- notes from development, not user documentation.
+  notes from development, not user documentation.
 
 ---
 
