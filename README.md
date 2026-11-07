@@ -104,7 +104,17 @@ instance/           SQLite database (created at runtime)
 
 - `.env` and `instance/` are local-only and should not be committed with real data.
 - `PLAN.md`, `IMPLEMENTATION_SUMMARY.md`, and `OPTIMIZATION_REPORT.md` are working
-  notes from development, not user documentation.
+ notes from development, not user documentation.
+
+---
+
+## Bahasa Indonesia
+
+**IT Support App** adalah aplikasi web layanan mandiri untuk masalah IT: pengguna menjelaskan kendalanya, aplikasi menuntun lewat pohon keputusan diagnosis, dan kasus yang belum selesai berubah menjadi tiket.
+
+Jawaban dan solusi disimpan di basis pengetahuan yang bisa disunting, sehingga masalah yang sama tidak perlu didiagnosis dari awal.
+
+---
 
 ## License
 
